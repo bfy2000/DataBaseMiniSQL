@@ -2,7 +2,7 @@
  * Media, ISBN 978-0-596-15597-1
  * Copyright (c) 2009, Taughannock Networks. All rights reserved.
  * See the README file for license conditions and contact info.
- * $Header: /home/johnl/flnb/code/sql/RCS/pmysql.y,v 2.1 2009/11/08 02:53:39 johnl Exp $
+ * $Header: /home/johnl/flnb/code/sql/RCS/lpmysql.y,v 2.1 2009/11/08 02:53:39 johnl Exp $
  */
 /*
  * Parser for mysql subset
@@ -12,9 +12,40 @@
 #include <stdarg.h>
 #include <string.h>
 
-void yyerror(char *s, ...);
-void emit(char *s, ...);
-%}
+ %}
+
+%code requires {
+char *filename;
+
+typedef struct YYLTYPE {
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+  char *filename;
+} YYLTYPE;
+# define YYLTYPE_IS_DECLARED 1
+
+# define YYLLOC_DEFAULT(Current, Rhs, N)				\
+    do									\
+      if (N)                                                            \
+	{								\
+	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
+	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
+	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
+	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
+	  (Current).filename     = YYRHSLOC (Rhs, 1).filename;	        \
+	}								\
+      else								\
+	{ /* empty RHS */						\
+	  (Current).first_line   = (Current).last_line   =		\
+	    YYRHSLOC (Rhs, 0).last_line;				\
+	  (Current).first_column = (Current).last_column =		\
+	    YYRHSLOC (Rhs, 0).last_column;				\
+	  (Current).filename  = NULL;					\
+	}								\
+    while (0)
+}
 
 
 %union {
@@ -296,11 +327,22 @@ void emit(char *s, ...);
 
 %start stmt_list
 
+%{
+void yyerror(char *s, ...);
+void lyyerror(YYLTYPE, char *s, ...);
+void emit(char *s, ...);
+ %}
+  /* free discarded tokens */
+%destructor { printf ("free at %d %s\n",@$.first_line, $$); free($$); } <strval>
+
 %%
 
 stmt_list: stmt ';'
   | stmt_list stmt ';'
   ;
+
+stmt_list: error ';'
+   | stmt_list error ';' ;
 
    /* statements: select statement */
 
@@ -351,19 +393,23 @@ opt_into_list: /* nil */
    | INTO column_list { emit("INTO %d", $2); }
    ;
 
-column_list: NAME { emit("COLUMN %s", $1); free($1); $$ = 1; }
-  | column_list ',' NAME  { emit("COLUMN %s", $3); free($3); $$ = $1 + 1; }
+column_list: NAME          { emit("COLUMN %s", $1); free($1); $$ = 1; }
+  | STRING                 { lyyerror(@1, "string %s found where name required", $1);
+                              emit("COLUMN %s", $1); free($1); $$ = 1; }
+  | column_list ',' NAME   { emit("COLUMN %s", $3); free($3); $$ = $1 + 1; }
+  | column_list ',' STRING { lyyerror(@3, "string %s found where name required", $1);
+                            emit("COLUMN %s", $3); free($3); $$ = $1 + 1; }
   ;
 
 select_opts:                          { $$ = 0; }
-| select_opts ALL                 { if($$ & 01) yyerror("duplicate ALL option"); $$ = $1 | 01; }
-| select_opts DISTINCT            { if($$ & 02) yyerror("duplicate DISTINCT option"); $$ = $1 | 02; }
-| select_opts DISTINCTROW         { if($$ & 04) yyerror("duplicate DISTINCTROW option"); $$ = $1 | 04; }
-| select_opts HIGH_PRIORITY       { if($$ & 010) yyerror("duplicate HIGH_PRIORITY option"); $$ = $1 | 010; }
-| select_opts STRAIGHT_JOIN       { if($$ & 020) yyerror("duplicate STRAIGHT_JOIN option"); $$ = $1 | 020; }
-| select_opts SQL_SMALL_RESULT    { if($$ & 040) yyerror("duplicate SQL_SMALL_RESULT option"); $$ = $1 | 040; }
-| select_opts SQL_BIG_RESULT      { if($$ & 0100) yyerror("duplicate SQL_BIG_RESULT option"); $$ = $1 | 0100; }
-| select_opts SQL_CALC_FOUND_ROWS { if($$ & 0200) yyerror("duplicate SQL_CALC_FOUND_ROWS option"); $$ = $1 | 0200; }
+| select_opts ALL                 { if($$ & 01) lyyerror(@2,"duplicate ALL option"); $$ = $1 | 01; }
+| select_opts DISTINCT            { if($$ & 02) lyyerror(@2,"duplicate DISTINCT option"); $$ = $1 | 02; }
+| select_opts DISTINCTROW         { if($$ & 04) lyyerror(@2,"duplicate DISTINCTROW option"); $$ = $1 | 04; }
+| select_opts HIGH_PRIORITY       { if($$ & 010) lyyerror(@2,"duplicate HIGH_PRIORITY option"); $$ = $1 | 010; }
+| select_opts STRAIGHT_JOIN       { if($$ & 020) lyyerror(@2,"duplicate STRAIGHT_JOIN option"); $$ = $1 | 020; }
+| select_opts SQL_SMALL_RESULT    { if($$ & 040) lyyerror(@2,"duplicate SQL_SMALL_RESULT option"); $$ = $1 | 040; }
+| select_opts SQL_BIG_RESULT      { if($$ & 0100) lyyerror(@2,"duplicate SQL_BIG_RESULT option"); $$ = $1 | 0100; }
+| select_opts SQL_CALC_FOUND_ROWS { if($$ & 0200) lyyerror(@2,"duplicate SQL_CALC_FOUND_ROWS option"); $$ = $1 | 0200; }
     ;
 
 select_expr_list: select_expr { $$ = 1; }
@@ -543,16 +589,16 @@ insert_stmt: INSERT insert_opts opt_into NAME opt_col_names
 
 insert_asgn_list:
      NAME COMPARISON expr 
-     { if ($2 != 4) yyerror("bad insert assignment to %s", $1);
+       { if ($2 != 4) { lyyerror(@2,"bad insert assignment to %s", $1); YYERROR; }
        emit("ASSIGN %s", $1); free($1); $$ = 1; }
    | NAME COMPARISON DEFAULT
-               { if ($2 != 4) yyerror("bad insert assignment to %s", $1);
+       { if ($2 != 4) { lyyerror(@2,"bad insert assignment to %s", $1); YYERROR; }
                  emit("DEFAULT"); emit("ASSIGN %s", $1); free($1); $$ = 1; }
    | insert_asgn_list ',' NAME COMPARISON expr
-               { if ($4 != 4) yyerror("bad insert assignment to %s", $1);
+       { if ($4 != 4) { lyyerror(@4,"bad insert assignment to %s", $1); YYERROR; }
                  emit("ASSIGN %s", $3); free($3); $$ = $1 + 1; }
    | insert_asgn_list ',' NAME COMPARISON DEFAULT
-               { if ($4 != 4) yyerror("bad insert assignment to %s", $1);
+       { if ($4 != 4) { lyyerror(@4,"bad insert assignment to %s", $1); YYERROR; }
                  emit("DEFAULT"); emit("ASSIGN %s", $3); free($3); $$ = $1 + 1; }
    ;
 
@@ -595,16 +641,16 @@ update_opts: /* nil */ { $$ = 0; }
 
 update_asgn_list:
      NAME COMPARISON expr 
-       { if ($2 != 4) yyerror("bad insert assignment to %s", $1);
+     { if ($2 != 4) { lyyerror(@2,"bad update assignment to %s", $1); YYERROR; }
 	 emit("ASSIGN %s", $1); free($1); $$ = 1; }
    | NAME '.' NAME COMPARISON expr 
-       { if ($4 != 4) yyerror("bad insert assignment to %s", $1);
+   { if ($4 != 4) { lyyerror(@4,"bad update assignment to %s", $1); YYERROR; }
 	 emit("ASSIGN %s.%s", $1, $3); free($1); free($3); $$ = 1; }
    | update_asgn_list ',' NAME COMPARISON expr
-       { if ($4 != 4) yyerror("bad insert assignment to %s", $3);
+   { if ($4 != 4) { lyyerror(@4,"bad update assignment to %s", $3); YYERROR; }
 	 emit("ASSIGN %s.%s", $3); free($3); $$ = $1 + 1; }
    | update_asgn_list ',' NAME '.' NAME COMPARISON expr
-       { if ($6 != 4) yyerror("bad insert assignment to %s.$s", $3, $5);
+   { if ($6 != 4) { lyyerror(@6,"bad update  assignment to %s.$s", $3, $5); YYERROR; }
 	 emit("ASSIGN %s.%s", $3, $5); free($3); free($5); $$ = 1; }
    ;
 
@@ -620,7 +666,7 @@ create_database_stmt:
    ;
 
 opt_if_not_exists:  /* nil */ { $$ = 0; }
-   | IF EXISTS           { if(!$2)yyerror("IF EXISTS doesn't exist");
+   | IF EXISTS        { if(!$2) { lyyerror(@2,"IF EXISTS doesn't exist"); YYERROR; }
                         $$ = $2; /* NOT EXISTS hack */ }
    ;
 
@@ -766,7 +812,7 @@ set_stmt: SET set_list ;
 set_list: set_expr | set_list ',' set_expr ;
 
 set_expr:
-      USERVAR COMPARISON expr { if ($2 != 4) yyerror("bad set to @%s", $1);
+USERVAR COMPARISON expr { if ($2 != 4) { lyyerror(@2,"bad set to @%s", $1); YYERROR; }
 		 emit("SET %s", $1); free($1); }
     | USERVAR ASSIGN expr { emit("SET %s", $1); free($1); }
     ;
@@ -818,7 +864,7 @@ expr: expr BETWEEN expr AND expr %prec BETWEEN { emit("BETWEEN"); }
 
 val_list: expr { $$ = 1; }
    | expr ',' val_list { $$ = 1 + $3; }
-   ;
+   
 
 opt_val_list: /* nil */ { $$ = 0; }
    | val_list
@@ -909,12 +955,26 @@ emit(char *s, ...)
 void
 yyerror(char *s, ...)
 {
-  extern yylineno;
-
   va_list ap;
   va_start(ap, s);
 
-  fprintf(stderr, "%d: error: ", yylineno);
+  if(yylloc.first_line)
+    fprintf(stderr, "%s:%d.%d-%d.%d: error: ", yylloc.filename, yylloc.first_line, yylloc.first_column,
+	    yylloc.last_line, yylloc.last_column);
+  vfprintf(stderr, s, ap);
+  fprintf(stderr, "\n");
+
+}
+
+void
+lyyerror(YYLTYPE t, char *s, ...)
+{
+  va_list ap;
+  va_start(ap, s);
+
+  if(t.first_line)
+    fprintf(stderr, "%s:%d.%d-%d.%d: error: ", t.filename, t.first_line, t.first_column,
+	    t.last_line, t.last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
 }
@@ -927,10 +987,14 @@ main(int ac, char **av)
     yydebug = 1; ac--; av++;
   }
 
-  if(ac > 1 && (yyin = fopen(av[1], "r")) == NULL) {
-    perror(av[1]);
-    exit(1);
-  }
+  if(ac > 1) {
+    if((yyin = fopen(av[1], "r")) == NULL) {
+      perror(av[1]);
+      exit(1);
+    }
+    filename = av[1];
+  } else
+    filename = "(stdin)";
 
   if(!yyparse())
     printf("SQL parse worked\n");

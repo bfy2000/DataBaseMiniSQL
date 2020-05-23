@@ -3,27 +3,27 @@ LEX = win_flex
 YACC = win_bison
 CFLAGS = -DYYDEBUG=1
 
-PROGRAM = pmysql
+PROGRAM = lpmysql
 
 all:	${PROGRAM}
 
-pmysql:	pmysql.tab.o pmysql.o
-	${CC} -o $@ pmysql.tab.o pmysql.o
+lpmysql:	lpmysql.tab.o lpmysql.o
+	${CC} -o $@ lpmysql.tab.o lpmysql.o
 
-pmysql.o:	pmysql.c
+lpmysql.o:	lpmysql.c
 	${CC} ${CFLAGS} -c -o $@ $<
 
-pmysql.c:	pmysql.l
+lpmysql.c:	lpmysql.l
 	${LEX} -o $@ $<
 
-pmysql.tab.o:	pmysql.tab.c
+lpmysql.tab.o:	lpmysql.tab.c
 	${CC} ${CFLAGS} -c -o $@ $<
 
-pmysql.tab.c pmysql.tab.h:	pmysql.y
+lpmysql.tab.c lpmysql.tab.h:	lpmysql.y
 	${YACC} -vd $<
 
 clean:
-	del pmysql.exe pmysql.tab.c pmysql.tab.h \
-	pmysql.c pmysql.tab.o pmysql.o pmysql.output
+	del lpmysql.exe lpmysql.tab.c lpmysql.tab.h \
+	lpmysql.c lpmysql.tab.o lpmysql.o lpmysql.output
 
 .SUFFIXES:	.l .y .c

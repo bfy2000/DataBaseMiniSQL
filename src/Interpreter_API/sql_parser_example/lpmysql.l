@@ -2,21 +2,30 @@
  * Media, ISBN 978-0-596-15597-1
  * Copyright (c) 2009, Taughannock Networks. All rights reserved.
  * See the README file for license conditions and contact info.
- * $Header: /home/johnl/flnb/code/sql/RCS/pmysql.l,v 2.1 2009/11/08 02:53:39 johnl Exp $
+ * $Header: /home/johnl/flnb/code/sql/RCS/lpmysql.l,v 2.1 2009/11/08 02:53:39 johnl Exp $
  */
 /*
  * Scanner for mysql subset
+ * With error reporting and recovery
  */
 
 %option noyywrap nodefault yylineno case-insensitive
 %{
-#include "pmysql.tab.h"
+#include "lpmysql.tab.h"
 #include <stdarg.h>
 #include <string.h>
 
 void yyerror(char *s, ...);
-
 int oldstate;
+
+/* handle locations */
+int yycolumn = 1;
+
+#define YY_USER_ACTION yylloc.filename = filename; \
+    yylloc.first_line = yylloc.last_line = yylineno; \
+    yylloc.first_column = yycolumn; yylloc.last_column = yycolumn+yyleng-1; \
+    yycolumn += yyleng;
+
 
 %}
 
@@ -98,7 +107,7 @@ END	{ return END; }
 ENUM { return ENUM; }
 ESCAPED	{ return ESCAPED; }
 EXISTS	{ yylval.subtok = 0; return EXISTS; }
-NOT[ \t\n]+EXISTS	{ yylval.subtok = 1; return EXISTS; }
+NOT[ \t]+EXISTS	{ yylval.subtok = 1; return EXISTS; }
 EXIT	{ return EXIT; }
 EXPLAIN	{ return EXPLAIN; }
 FETCH	{ return FETCH; }
@@ -161,7 +170,7 @@ NO_WRITE_TO_BINLOG	{ return NO_WRITE_TO_BINLOG; }
 NULL	{ return NULLX; }
 NUMBER	{ return NUMBER; }
 ON	{ return ON; }
-ON[ \t\n]+DUPLICATE { return ONDUPLICATE; } /* hack due to limited lookahead */
+ON[ \t]+DUPLICATE { return ONDUPLICATE; } /* hack due to limited lookahead */
 OPTIMIZE	{ return OPTIMIZE; }
 OPTION	{ return OPTION; }
 OPTIONALLY	{ return OPTIONALLY; }
@@ -344,11 +353,13 @@ COUNT    { int c = input(); unput(c);
 
 "/*"            { oldstate = YY_START; BEGIN COMMENT; }
 <COMMENT>"*/"   { BEGIN oldstate; }
-<COMMENT>.|\n   ;
+<COMMENT>.   ;
+<COMMENT>\n     { yycolumn = 1; }
 <COMMENT><<EOF>> { yyerror("unclosed comment"); }
 
-	/* everything else */
-[ \t\n]         /* white space */
+	        /* everything else */
+[ \t]           /* white space */
+\n              { yycolumn = 1; }
 .               { yyerror("mystery character '%c'", *yytext); }
 
 %%
