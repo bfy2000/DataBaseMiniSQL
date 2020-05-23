@@ -26,6 +26,21 @@ linkcolor=black
 
 \clearpage
 \section{需求分析}
+\subsection{概述}
+\begin{enumerate}
+    \item \textbf{数据类型}: int, char(n), float, 其中$1\le n\le255$。
+    \item \textbf{表定义}: 一个表最多定义\textit{32}个属性，可以指定是否为\textit{unique}，支持\textit{主键定义}。
+    \item \textbf{索引的建立和删除}: 对于表的主属性自动建立B+树索引，对于声明为unique的属性可以通过SQL语句由用户指定建立/删除B+树索引。
+    \item \textbf{查找记录}: 可以通过指定用\textit{and}连接的多个条件进行查询，支持\textit{等值查询和区间查询}。
+    \item \textbf{插入和删除记录}: 支持每次一条记录的插入操作；支持每次一条或多条记录的删除操作。
+\end{enumerate}
+
+
+
+
+\clearpage
+\section{模块设计}
+\subsection{Interpreter $\&$ API}
 
 
 
