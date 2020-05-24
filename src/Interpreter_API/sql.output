@@ -1,0 +1,311 @@
+Grammar
+
+    0 $accept: stmt_list $end
+
+    1 stmt_list: stmt ';'
+    2          | stmt_list stmt ';'
+
+    3 stmt: insert_stmt
+
+    4 insert_stmt: INSERT INTO NAME VALUES insert_vals_list
+
+    5 insert_vals_list: '(' insert_vals ')'
+    6                 | insert_vals_list ',' '(' insert_vals ')'
+
+    7 insert_vals: expr
+    8            | insert_vals ',' expr
+
+    9 expr: NAME
+   10     | NAME '.' NAME
+   11     | STRING
+   12     | INTNUM
+   13     | APPROXNUM
+   14     | BOOL
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 5 6
+')' (41) 5 6
+',' (44) 6 8
+'.' (46) 10
+';' (59) 1 2
+error (256)
+NAME (258) 4 9 10
+STRING (259) 11
+INTNUM (260) 12
+BOOL (261) 14
+APPROXNUM (262) 13
+INSERT (263) 4
+INTO (264) 4
+VALUES (265) 4
+
+
+Nonterminals, with rules where they appear
+
+$accept (16)
+    on left: 0
+stmt_list (17)
+    on left: 1 2, on right: 0 2
+stmt (18)
+    on left: 3, on right: 1 2
+insert_stmt (19)
+    on left: 4, on right: 3
+insert_vals_list (20)
+    on left: 5 6, on right: 4 6
+insert_vals (21)
+    on left: 7 8, on right: 5 6 8
+expr (22)
+    on left: 9 10 11 12 13 14, on right: 7 8
+
+
+State 0
+
+    0 $accept: . stmt_list $end
+
+    INSERT  shift, and go to state 1
+
+    stmt_list    go to state 2
+    stmt         go to state 3
+    insert_stmt  go to state 4
+
+
+State 1
+
+    4 insert_stmt: INSERT . INTO NAME VALUES insert_vals_list
+
+    INTO  shift, and go to state 5
+
+
+State 2
+
+    0 $accept: stmt_list . $end
+    2 stmt_list: stmt_list . stmt ';'
+
+    $end    shift, and go to state 6
+    INSERT  shift, and go to state 1
+
+    stmt         go to state 7
+    insert_stmt  go to state 4
+
+
+State 3
+
+    1 stmt_list: stmt . ';'
+
+    ';'  shift, and go to state 8
+
+
+State 4
+
+    3 stmt: insert_stmt .
+
+    $default  reduce using rule 3 (stmt)
+
+
+State 5
+
+    4 insert_stmt: INSERT INTO . NAME VALUES insert_vals_list
+
+    NAME  shift, and go to state 9
+
+
+State 6
+
+    0 $accept: stmt_list $end .
+
+    $default  accept
+
+
+State 7
+
+    2 stmt_list: stmt_list stmt . ';'
+
+    ';'  shift, and go to state 10
+
+
+State 8
+
+    1 stmt_list: stmt ';' .
+
+    $default  reduce using rule 1 (stmt_list)
+
+
+State 9
+
+    4 insert_stmt: INSERT INTO NAME . VALUES insert_vals_list
+
+    VALUES  shift, and go to state 11
+
+
+State 10
+
+    2 stmt_list: stmt_list stmt ';' .
+
+    $default  reduce using rule 2 (stmt_list)
+
+
+State 11
+
+    4 insert_stmt: INSERT INTO NAME VALUES . insert_vals_list
+
+    '('  shift, and go to state 12
+
+    insert_vals_list  go to state 13
+
+
+State 12
+
+    5 insert_vals_list: '(' . insert_vals ')'
+
+    NAME       shift, and go to state 14
+    STRING     shift, and go to state 15
+    INTNUM     shift, and go to state 16
+    BOOL       shift, and go to state 17
+    APPROXNUM  shift, and go to state 18
+
+    insert_vals  go to state 19
+    expr         go to state 20
+
+
+State 13
+
+    4 insert_stmt: INSERT INTO NAME VALUES insert_vals_list .
+    6 insert_vals_list: insert_vals_list . ',' '(' insert_vals ')'
+
+    ','  shift, and go to state 21
+
+    $default  reduce using rule 4 (insert_stmt)
+
+
+State 14
+
+    9 expr: NAME .
+   10     | NAME . '.' NAME
+
+    '.'  shift, and go to state 22
+
+    $default  reduce using rule 9 (expr)
+
+
+State 15
+
+   11 expr: STRING .
+
+    $default  reduce using rule 11 (expr)
+
+
+State 16
+
+   12 expr: INTNUM .
+
+    $default  reduce using rule 12 (expr)
+
+
+State 17
+
+   14 expr: BOOL .
+
+    $default  reduce using rule 14 (expr)
+
+
+State 18
+
+   13 expr: APPROXNUM .
+
+    $default  reduce using rule 13 (expr)
+
+
+State 19
+
+    5 insert_vals_list: '(' insert_vals . ')'
+    8 insert_vals: insert_vals . ',' expr
+
+    ')'  shift, and go to state 23
+    ','  shift, and go to state 24
+
+
+State 20
+
+    7 insert_vals: expr .
+
+    $default  reduce using rule 7 (insert_vals)
+
+
+State 21
+
+    6 insert_vals_list: insert_vals_list ',' . '(' insert_vals ')'
+
+    '('  shift, and go to state 25
+
+
+State 22
+
+   10 expr: NAME '.' . NAME
+
+    NAME  shift, and go to state 26
+
+
+State 23
+
+    5 insert_vals_list: '(' insert_vals ')' .
+
+    $default  reduce using rule 5 (insert_vals_list)
+
+
+State 24
+
+    8 insert_vals: insert_vals ',' . expr
+
+    NAME       shift, and go to state 14
+    STRING     shift, and go to state 15
+    INTNUM     shift, and go to state 16
+    BOOL       shift, and go to state 17
+    APPROXNUM  shift, and go to state 18
+
+    expr  go to state 27
+
+
+State 25
+
+    6 insert_vals_list: insert_vals_list ',' '(' . insert_vals ')'
+
+    NAME       shift, and go to state 14
+    STRING     shift, and go to state 15
+    INTNUM     shift, and go to state 16
+    BOOL       shift, and go to state 17
+    APPROXNUM  shift, and go to state 18
+
+    insert_vals  go to state 28
+    expr         go to state 20
+
+
+State 26
+
+   10 expr: NAME '.' NAME .
+
+    $default  reduce using rule 10 (expr)
+
+
+State 27
+
+    8 insert_vals: insert_vals ',' expr .
+
+    $default  reduce using rule 8 (insert_vals)
+
+
+State 28
+
+    6 insert_vals_list: insert_vals_list ',' '(' insert_vals . ')'
+    8 insert_vals: insert_vals . ',' expr
+
+    ')'  shift, and go to state 29
+    ','  shift, and go to state 24
+
+
+State 29
+
+    6 insert_vals_list: insert_vals_list ',' '(' insert_vals ')' .
+
+    $default  reduce using rule 6 (insert_vals_list)
