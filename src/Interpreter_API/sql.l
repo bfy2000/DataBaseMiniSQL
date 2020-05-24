@@ -14,16 +14,28 @@ int oldstate;
 
 %%
 
+AND     { return AND; }
+CHAR    { return CHAR; }
 CREATE  { return CREATE; }
+DOUBLE  { return DOUBLE; }
 DROP    { return DROP; }
 EXECFILE    { return EXECFILE; }
+FLOAT   { return FLOAT; }
+FROM    { return FROM; }
 INDEX   { return INDEX; }
 INSERT	{ return INSERT; }
+INT     { return INT; }
+INTEGER { return INTEGER; }
 INTO	{ return INTO; }
+KEY     { return KEY; }
 ON      { return ON; }
+PRIMARY { return PRIMARY; }
 QUIT    { return QUIT; }
+SELECT  { return SELECT; }
 TABLE   { return TABLE; }
-VALUES?	{ return VALUES; }
+UNIQUE  { return UNIQUE; }
+VALUES	{ return VALUES; }
+WHERE   { return WHERE; }
 
 
 -?[0-9]+	        { yylval.intval = atoi(yytext); return INTNUM; } 
@@ -48,6 +60,15 @@ B'[01]+'     { yylval.strval = strdup(yytext); return STRING; }
 
 
 [-+&~|^/%*(),.;!]   { return yytext[0]; }
+
+"&&"		{ return AND; }
+"="	{ yylval.subtok = 4; return COMPARISON; }
+">="	{ yylval.subtok = 6; return COMPARISON; }
+">"	{ yylval.subtok = 2; return COMPARISON; }
+"<="	{ yylval.subtok = 5; return COMPARISON; }
+"<"	{ yylval.subtok = 1; return COMPARISON; }
+"!="	|
+"<>"	{ yylval.subtok = 3; return COMPARISON; }
 
 
 [A-Za-z][A-Za-z0-9_]*	{ yylval.strval = strdup(yytext);

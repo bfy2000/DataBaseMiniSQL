@@ -51,16 +51,29 @@ extern int yydebug;
      INTNUM = 260,
      BOOL = 261,
      APPROXNUM = 262,
-     CREATE = 263,
-     DROP = 264,
-     EXECFILE = 265,
-     INDEX = 266,
-     INSERT = 267,
-     INTO = 268,
-     ON = 269,
-     QUIT = 270,
-     TABLE = 271,
-     VALUES = 272
+     COMPARISON = 263,
+     AND = 264,
+     CHAR = 265,
+     CREATE = 266,
+     DOUBLE = 267,
+     DROP = 268,
+     EXECFILE = 269,
+     FLOAT = 270,
+     FROM = 271,
+     INDEX = 272,
+     INSERT = 273,
+     INT = 274,
+     INTEGER = 275,
+     INTO = 276,
+     KEY = 277,
+     ON = 278,
+     PRIMARY = 279,
+     QUIT = 280,
+     SELECT = 281,
+     TABLE = 282,
+     UNIQUE = 283,
+     VALUES = 284,
+     WHERE = 285
    };
 #endif
 
@@ -78,7 +91,7 @@ typedef union YYSTYPE
 
 
 /* Line 2058 of yacc.c  */
-#line 82 "sql.tab.h"
+#line 95 "sql.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

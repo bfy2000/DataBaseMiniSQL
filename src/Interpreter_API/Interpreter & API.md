@@ -3,7 +3,7 @@
 insert into student values (‘12345678’,’wy’,22,’M’);
 ```
 
-- [ ] create table
+- [X] create table
 ```sql
 create table student (
     sno char(8),
@@ -14,7 +14,7 @@ create table student (
 );
 ```
 
-- [ ]
+- [X]
 ```mysql
 select * from student;
 select * from student where sno = ‘88888888’;
