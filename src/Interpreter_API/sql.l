@@ -14,8 +14,15 @@ int oldstate;
 
 %%
 
+CREATE  { return CREATE; }
+DROP    { return DROP; }
+EXECFILE    { return EXECFILE; }
+INDEX   { return INDEX; }
 INSERT	{ return INSERT; }
 INTO	{ return INTO; }
+ON      { return ON; }
+QUIT    { return QUIT; }
+TABLE   { return TABLE; }
 VALUES?	{ return VALUES; }
 
 
