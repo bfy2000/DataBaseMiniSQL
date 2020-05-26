@@ -1,7 +1,9 @@
-#include "Colormod.h"
 #include "Utils.h"
 #include <string>
+#include <sstream>
 #include <iostream>
+
+using namespace std;
 
 void Prompt(std::string prompt, mode color) {
 	Color::Modifier prompt_red(Color::FG_RED);
@@ -21,5 +23,8 @@ void Prompt(std::string prompt) {
 	std::cout << prompt << std::endl;
 }
 
+void PromptErr(std::string prompt) {
+	Prompt(prompt, red);
+}
 
 

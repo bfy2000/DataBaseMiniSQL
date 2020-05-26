@@ -1,9 +1,9 @@
 - [x] insert
 ```sql
-insert into student values (‘12345678’,’wy’,22,’M’);
+insert into student values ('12345678','wy',22,'M');
 ```
 
-- [X] create table
+- [ ] create table
 ```sql
 create table student (
     sno char(8),
@@ -14,7 +14,8 @@ create table student (
 );
 ```
 
-- [X]
+- [ ] select
+
 ```mysql
 select * from student;
 select * from student where sno = ‘88888888’;
@@ -26,7 +27,7 @@ select * from student where sage > 20 and sgender = ‘F’;
 drop index stunameidx;
 ```
 
-- [X]
+- [X] create index
 ```sql
 create index stunameidx on student ( sname );
 ```
@@ -41,7 +42,7 @@ drop table student;
 quit
 ```
 
-- [X] 
+- [X] execute file
 ```sql
 execfile xxx;
 ```

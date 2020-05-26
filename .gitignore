@@ -6,3 +6,11 @@ report.toc
 /src/Interpreter & API/flex
 /.idea
 /build
+/.vscode
+/.vs
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+/x64
+/Debug
