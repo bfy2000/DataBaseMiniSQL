@@ -19,12 +19,33 @@ enum class State {
 	CREATE_INDEX_LEFT_BRACKET,
 	CREATE_INDEX_ATTR_PARSED,
 	CREATE_INDEX_RIGHT_BRACKET,
-
+	CREATE_TABLE_PARSED,
+	CREATE_TABLE_LEFT_BRACKET,
+	CREATE_TABLE_RIGHT_BRACKET,
+	CREATE_TABLE_PRIMARY,
+	CREATE_ATTR_PARSED,
+	CREATE_PRIMARY_KEY,
+	CREATE_PRIMARY_LEFT_BRACKET,
+	CREATE_PRIMARY_RIGHT_BRACKET,
+	PRIMARY_ATTR_PARSED,
+	CREATE_COMMA,
+	CREATE_INT_PARSED,
+	CREATE_FLOAT_PARSED,
+	CREATE_CHAR_PARSED,
+	CHAR_LEFT_BRACKET,
+	CHAR_RIGHT_BRACKET,
+	CHAR_BIT_PARSED,
+	UNIQUE_PARSED,
 
 
 	// select
 	SELECT,
-	
+	SELECT_ALL,
+	SELECT_ATTR,
+	SELECT_ATTR_COMMA,
+	SELECT_FROM,
+	SELECT_TABLE_PARSED,
+
 	// insert
 	INSERT,
 	INTO,
@@ -64,21 +85,17 @@ public:
 	bool ProcessInput(string& input_string);
 	void ReadInput(istringstream& input);
 	
-	
-
 private:
 	State state_code;
 	string tmp_drop_obj;
 	string tmp_insert_table;
-	InsertQuery insert_values_query;
-
 	string tmp_index_name;
 	string tmp_table_name;
 	string tmp_attr_name;
 
-
-	
-
+	InsertQuery insert_values_query;
+	CreateTable create_table;
+	SelectQuery select_query;
 };
 
 

@@ -11,10 +11,10 @@
 using namespace std;
 
 Interpreter::Interpreter()
-	:state_code{State::IDLE}
-{
+	:state_code{State::IDLE} {
 
 }
+
 Interpreter::~Interpreter() {
 
 }
@@ -113,15 +113,21 @@ void Interpreter::ReadInput(istringstream &input) {
 			else if (next_word == "DROP" || next_word == "drop") {
 				state_code = State::DROP;
 			}
-			else if (next_word == "") {}
-			else {
+			else if (next_word != "" && next_word != ";") {
 				PromptErr("[Syntax Error] undefined operation: " + next_word);
 				return;
 			}
 		} break;
 		case State::EXECFILE: {
-			ExecFile(next_word);
-			state_code = State::IDLE;
+			if (next_word[0] == '\\') {
+				ExecFile(next_word);
+				state_code = State::IDLE;
+			}
+			else {
+				PromptErr("[Syntax Error] illegal file path, expect a string");
+				state_code = State::IDLE;
+				return;
+			}
 		} break;
 		case State::QUIT:
 			return;
@@ -164,11 +170,7 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 		} break;
 		case State::DROP_TABLE: {
-			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*;$"))) {
-				DropTable(next_word.substr(0, next_word.size() - 1));
-				state_code = State::IDLE;
-			}
-			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
 				state_code = State::DROP_TABLE_PARSED;
 				tmp_drop_obj = next_word;
 			}
@@ -180,7 +182,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::DROP_TABLE_PARSED: {
 			if (next_word == ";") {
-				DropIndex(tmp_drop_obj);
+				DropTable(tmp_drop_obj);
 				state_code = State::IDLE;
 			}
 			else if (next_word == "") {}
@@ -375,15 +377,350 @@ void Interpreter::ReadInput(istringstream &input) {
 				return;
 			}
 		} break;
+		case State::CREATE_TABLE: {
+			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+				create_table.SetTableName(next_word);
+				state_code = State::CREATE_TABLE_PARSED;
+			}
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid table name: " + next_word);
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_TABLE_PARSED: {
+			if (next_word == "(")
+				state_code = State::CREATE_TABLE_LEFT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] expect (");
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_TABLE_LEFT_BRACKET: {
+			if (next_word == "PRIMARY" || next_word == "primary") {
+				state_code = State::CREATE_TABLE_PRIMARY;
+			}
+			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+				create_table.InsertAttr(next_word);
+				state_code = State::CREATE_ATTR_PARSED;
+			}
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid keyword: " + next_word);
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_TABLE_PRIMARY: {
+			if (next_word == "KEY" || next_word == "key")
+				state_code = State::CREATE_PRIMARY_KEY;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] expect KEY");
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_PRIMARY_KEY: {
+			if (next_word == "(")
+				state_code = State::CREATE_PRIMARY_LEFT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] expect (");
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+
+		case State::CREATE_PRIMARY_LEFT_BRACKET: {
+			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+				create_table.InsertPrimary(next_word);
+				state_code = State::PRIMARY_ATTR_PARSED;
+			}
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid attribute name: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::PRIMARY_ATTR_PARSED: {
+			if (next_word == ")")
+				state_code = State::CREATE_PRIMARY_RIGHT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] expect )");
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_PRIMARY_RIGHT_BRACKET: {
+			if (next_word == ",")
+				state_code = State::CREATE_COMMA;
+			else if (next_word == ")")
+				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] expect ) or ,");
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_COMMA: {
+			if (next_word == "PRIMARY" || next_word == "primary") {
+				state_code = State::CREATE_TABLE_PRIMARY;
+			}
+			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+				create_table.InsertAttr(next_word);
+				state_code = State::CREATE_ATTR_PARSED;
+			}
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid keyword: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_ATTR_PARSED: {
+			if (next_word == "INT" || next_word == "int") {
+				state_code = State::CREATE_INT_PARSED;
+				create_table.InsertType(INT);
+			}
+			else if (next_word == "FLOAT" || next_word == "float") {
+				state_code = State::CREATE_FLOAT_PARSED;
+				create_table.InsertType(FLOAT);
+			}
+			else if (next_word == "CHAR" || next_word == "char") {
+				state_code = State::CREATE_CHAR_PARSED;
+				create_table.InsertType(STRING);
+			}
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid attribute type: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_INT_PARSED: {
+			if (next_word == "UNIQUE" || next_word == "unique") {
+				create_table.InsertUnique();
+				state_code = State::UNIQUE_PARSED;
+			}
+			else if (next_word == ",")
+				state_code = State::CREATE_COMMA;
+			else if (next_word == ")")
+				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid key word: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_CHAR_PARSED: {
+			if (next_word == "(")
+				state_code = State::CHAR_LEFT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid key word: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_FLOAT_PARSED: {
+			if (next_word == "UNIQUE" || next_word == "unique") {
+				create_table.InsertUnique();
+				state_code = State::UNIQUE_PARSED;
+			}
+			else if (next_word == ",")
+				state_code = State::CREATE_COMMA;
+			else if (next_word == ")")
+				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid key word: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+
+		case State::CHAR_LEFT_BRACKET: {
+			if (regex_match(next_word, regex("^[0-9]*$"))) {
+				create_table.InsertSize(stoi(next_word));
+				state_code = State::CHAR_BIT_PARSED;
+			}
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid char size: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CHAR_BIT_PARSED: {
+			if (next_word == ")")
+				state_code = State::CHAR_RIGHT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid keyword: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CHAR_RIGHT_BRACKET: {
+			if (next_word == "UNIQUE" || next_word == "unique") {
+				create_table.InsertUnique();
+				state_code = State::UNIQUE_PARSED;
+			}
+			else if (next_word == ",")
+				state_code = State::CREATE_COMMA;
+			else if (next_word == ")")
+				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid key word: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::UNIQUE_PARSED: {
+			if (next_word == ",")
+				state_code = State::CREATE_COMMA;
+			else if (next_word == ")")
+				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] invalid key word: " + next_word);
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::CREATE_TABLE_RIGHT_BRACKET: {
+			if (next_word == ";") {
+				create_table.Query();
+				state_code = State::IDLE;
+			}
+			else if (next_word != "") {
+				PromptErr("[Syntax Error] expect ;");
+				create_table.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::SELECT: {
+			if (next_word == "*") {
+				select_query.SetSelectAll();
+				state_code = State::SELECT_ALL;
+			}
+			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+				select_query.Insert(next_word);
+				state_code = State::SELECT_ATTR;
+			}
+			else if (next_word == "") {
+				PromptErr("[Syntax Error] invalid attribute name: " + next_word);
+				select_query.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::SELECT_ALL: {
+			if (next_word == "FROM" || next_word == "from")
+				state_code = State::SELECT_FROM;
+			else if (next_word == "") {
+				PromptErr("[Syntax Error] expect FROM");
+				select_query.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::SELECT_ATTR: {
+			if (next_word == ",")
+				state_code = State::SELECT_ATTR_COMMA;
+			else if(next_word == "FROM" || next_word == "from")
+				state_code = State::SELECT_FROM;
+			else if (next_word == "") {
+				PromptErr("[Syntax Error] invalid keyword: " + next_word);
+				select_query.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::SELECT_FROM: {
+			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$")))
+				state_code = State::SELECT_TABLE_PARSED;
+			else if (next_word == "") {
+				PromptErr("[Syntax Error] invalid table name: " + next_word);
+				select_query.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::SELECT_ATTR_COMMA: {
+			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+				select_query.Insert(next_word);
+				state_code = State::SELECT_ATTR;
+			}
+			else if (next_word == "") {
+				PromptErr("[Syntax Error] invalid attribute name: " + next_word);
+				select_query.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
+		case State::SELECT_TABLE_PARSED: {
+			if (next_word == ";") {
+				select_query.Query();
+				state_code = State::IDLE;
+			}
+			else if (next_word == "") {
+				PromptErr("[Syntax Error] invalid keyword: " + next_word);
+				select_query.Clear();
+				state_code = State::IDLE;
+				return;
+			}
+		} break;
 		default:
 			return;
 			break;
 		}
 		if (!(input >> next_word))
 			return;
-
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
