@@ -10,5 +10,7 @@ A project for MiniSQL project
 
 * 全部完成
 
+![](./assets/done.gif)
+
 
 
