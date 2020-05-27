@@ -23,18 +23,6 @@ State Interpreter::GetState() {
 	return state_code;
 }
 
-std::string& trim(std::string& s)
-{
-	if (s.empty())
-	{
-		return s;
-	}
-
-	s.erase(0, s.find_first_not_of(" "));
-	s.erase(s.find_last_not_of(" ") + 1);
-	return s;
-}
-
 void Interpreter::SetState(State set_state_code) {
 	state_code = set_state_code;
 }
@@ -97,7 +85,6 @@ bool Interpreter::ProcessInput(string& input_string) {
 	input_string = rst;
 	return true;
 }
-
 
 
 void Interpreter::ReadInput(istringstream &input) {

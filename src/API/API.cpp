@@ -95,7 +95,17 @@ void InsertQuery::Query() {
 }
 
 void ExecFile(string filename) {
-	Prompt("Execfile");
+	filename.erase(0, 1);
+	string final_filename = "";
+	vector<string> parse_vec = split(filename, '\\');
+	for (int i = 0; i < parse_vec.size(); i++) {
+		unsigned int each_char_val;
+		stringstream ss;
+		ss << hex << parse_vec[i];
+		ss >> each_char_val;
+		final_filename.push_back(each_char_val);
+	}
+	Prompt("Execfile: "+final_filename);
 }
 
 void DropIndex(string drop_index) {
