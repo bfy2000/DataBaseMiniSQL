@@ -10,51 +10,6 @@
 using namespace std;
 
 
-//* auxiliary functions 
-vector<string> split(const std::string& s, char delim) {
-	stringstream ss(s);
-	string item;
-	vector<string> elems;
-	while (getline(ss, item, delim)) {
-		elems.push_back(item);
-	}
-	return elems;
-}
-
-bool is_float(string myString) {
-	std::istringstream iss(myString);
-	float f;
-	iss >> noskipws >> f; // noskipws considers leading whitespace invalid
-	// Check the entire string was consumed and if either failbit or badbit is set
-	return iss.eof() && !iss.fail();
-}
-
-bool is_integer(std::string const& n) noexcept
-{
-	if (std::isdigit(n[0]) || (n.size() > 1 && (n[0] == '-' || n[0] == '+')))
-	{
-		for (std::string::size_type i{ 1 }; i < n.size(); ++i)
-			if (!std::isdigit(n[i]))
-				return false;
-		return true;
-	}
-	return false;
-}
-
-string parse_string(string& s) {
-	string rst = "";
-	return rst;
-}
-
-
-
-
-
-
-//--------------------------------------------------------------------------------------
-
-
-
 
 
 
@@ -62,7 +17,6 @@ string parse_string(string& s) {
 InsertQuery::InsertQuery() {
 
 }
-
 
 InsertQuery::~InsertQuery() {
 
@@ -112,31 +66,10 @@ void InsertQuery::Query() {
 
 
 
-
-//----------------------------------------------------------------------------------------
-
-
-
-
-//* EXECFILE ...
-void ExecFile(string filename) {
-	filename.erase(0, 1);
-	string final_filename = "";
-	vector<string> parse_vec = split(filename, '\\');
-	for (int i = 0; i < parse_vec.size(); i++) {
-		unsigned int each_char_val;
-		stringstream ss;
-		ss << hex << parse_vec[i];
-		ss >> each_char_val;
-		final_filename.push_back(each_char_val);
-	}
-	Prompt("Execfile: "+final_filename);
-}
-
-
-
-
 //------------------------------------------------------------------------------
+
+
+
 
 
 

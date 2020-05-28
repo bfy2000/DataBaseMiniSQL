@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <ostream>
+
+using namespace std;
+
 namespace Color {
 	enum Code {
 		FG_RED = 31,
@@ -32,10 +35,16 @@ const int MAX_FRAME_SIZE = 100;
 // * colored prompt
 enum mode {red, green, blue, def} ;
 
-void Prompt(std::string prompt, mode color);
-void Prompt(std::string prompt);
-void PromptErr(std::string prompt);
+void Prompt(string prompt, mode color);
+void Prompt(string prompt);
+void PromptErr(string prompt);
 
+
+vector<string> split(const string& s, char delim);
+
+bool is_float(string myString);
+
+bool is_integer(string const& n) noexcept;
 
 
 

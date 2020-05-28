@@ -4,22 +4,21 @@
 
 using namespace std;
 
-enum Type {
+enum Type {		// attribute types
 	STRING,
 	INT,
 	FLOAT,
 	UNDEFINED
 };
 
-struct InsertVal
+struct InsertVal		// insert values
 {
-	string val;
-	Type given_type;
+	string val;			// value
+	Type given_type;	// type
 	InsertVal() : val(""), given_type(UNDEFINED) {}
 	InsertVal(string given_val, Type given_t) 
 		: val(given_val), given_type(given_t) {}
 };
-
 
 class InsertQuery
 {
@@ -27,17 +26,15 @@ public:
 	InsertQuery();
 	~InsertQuery();
 
-	void Clear();
-	void Insert(string insert_val);
-	void Query();
-
+	void Clear();		// clear all saved data
+	void Insert(string insert_val);	// insert value
+	void Query();		// main process function
 private:
 	string insert_table_name;
 	vector<InsertVal> insert_values;
 };
 
 
-void ExecFile(string filename);
 void DropIndex(string drop_index);
 void DropTable(string drop_table);
 void CreateIndex(string index_name, string table_name, string attr_name);

@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <regex>
+#include <fstream>
 
 #include "../API/API.h"
 #include "Interpreter.h"
@@ -69,7 +70,6 @@ bool Interpreter::ProcessInput(string& input_string) {
 			rst += input_string[i];
 		}
 	}
-
 	if (quoted) {
 		PromptErr("[Invalid Argument] unquoted string!");
 		return false;
@@ -120,7 +120,19 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::EXECFILE: {
 			if (next_word[0] == '\\') {
-				ExecFile(next_word);
+				next_word.erase(0, 1);
+				string final_filename = "";
+				vector<string> parse_vec = split(next_word, '\\');
+				for (int i = 0; i < parse_vec.size(); i++) {
+					unsigned int each_char_val;
+					stringstream ss;
+					ss << hex << parse_vec[i];
+					ss >> each_char_val;
+					final_filename.push_back(each_char_val);
+				}
+				if (ParseFileInput(final_filename)) {
+					ExecFile(final_filename);
+				}
 				state_code = State::IDLE;
 			}
 			else {
@@ -143,15 +155,11 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 		} break;
 		case State::DROP_INDEX: {
-			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*;$"))) {
-				DropIndex(next_word.substr(0, next_word.size() - 1));
-				state_code = State::IDLE;
-			}
-			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
 				state_code = State::DROP_INDEX_PARSED;
 				tmp_drop_obj = next_word;
 			}
-			else {
+			else if (next_word != "") {
 				PromptErr("[Syntax Error] unreferenced index: " + next_word);
 				state_code = State::IDLE;
 				return;
@@ -174,7 +182,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::DROP_TABLE_PARSED;
 				tmp_drop_obj = next_word;
 			}
-			else {
+			else if (next_word != "") {
 				PromptErr("[Syntax Error] unreferenced index: " + next_word);
 				state_code = State::IDLE;
 				return;
@@ -185,8 +193,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				DropTable(tmp_drop_obj);
 				state_code = State::IDLE;
 			}
-			else if (next_word == "") {}
-			else {
+			else if (next_word != "") {
 				PromptErr("[Syntax Error] unreferenced statement: " + next_word);
 				state_code = State::IDLE;
 				return;
@@ -195,8 +202,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		case State::INSERT: {
 			if (next_word == "INTO" || next_word == "into")
 				state_code = State::INTO;
-			else if (next_word == "") {}
-			else {
+			else if (next_word != "") {
 				PromptErr("[Syntax Error] unreferenced keyword: " + next_word);
 				state_code = State::IDLE;
 				return;
@@ -207,8 +213,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				tmp_insert_table = next_word;
 				state_code = State::INSERT_PARSED;
 			}
-			else if (next_word == "") {}
-			else {
+			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid table name: " + next_word);
 				state_code = State::IDLE;
 				return;
@@ -679,7 +684,6 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 		} break;
 		default:
-			return;
 			break;
 		}
 		if (!(input >> next_word))
@@ -688,12 +692,558 @@ void Interpreter::ReadInput(istringstream &input) {
 }
 
 
+bool Interpreter::ParseFileInput(string& file_path) {
+	ifstream infile(file_path);
+	if (infile.fail()) {
+		PromptErr("[Runtime Error] cannot open file: " + file_path);
+		return false;
+	}
+
+	string input_line;
+	while (getline(infile, input_line)) {
+		if (ProcessInput(input_line)) {
+			istringstream input(input_line);
+
+			string next_word;
+			input >> next_word;
+
+			while (next_word != "") {
+				switch (state_code)
+				{
+				case State::IDLE: {
+					if (next_word == "SELECT" || next_word == "select")
+						state_code = State::SELECT;
+					else if (next_word == "QUIT" || next_word == "quit") {
+						return false;
+					}
+					else if (next_word == "CREATE" || next_word == "create") {
+						state_code = State::CREATE;
+					}
+					else if (next_word == "INSERT" || next_word == "insert") {
+						state_code = State::INSERT;
+					}
+					else if (next_word == "EXECFILE" || next_word == "execfile") {
+						return false;
+					}
+					else if (next_word == "DROP" || next_word == "drop") {
+						state_code = State::DROP;
+					}
+					else if (next_word != "" && next_word != ";") {
+						//PromptErr("[Syntax Error] undefined operation: " + next_word);
+						return false;
+					}
+				} break;
+				case State::DROP: {
+					if (next_word == "INDEX" || next_word == "index")
+						state_code = State::DROP_INDEX;
+					else if (next_word == "TABLE" || next_word == "table")
+						state_code = State::DROP_TABLE;
+					else {
+						//PromptErr("[Syntax Error] unreferenced DROP object, expect INDEX or TABLE");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::DROP_INDEX: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::DROP_INDEX_PARSED;
+					}
+					else if (next_word != "") {
+						//PromptErr("[Syntax Error] unreferenced index: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::DROP_INDEX_PARSED: {
+					if (next_word == ";") {
+						state_code = State::IDLE;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] unreferenced statement: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::DROP_TABLE: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::DROP_TABLE_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] unreferenced index: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::DROP_TABLE_PARSED: {
+					if (next_word == ";") {
+						state_code = State::IDLE;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] unreferenced statement: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::INSERT: {
+					if (next_word == "INTO" || next_word == "into")
+						state_code = State::INTO;
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] unreferenced keyword: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::INTO: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::INSERT_PARSED;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] invalid table name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::INSERT_PARSED: {
+					if (next_word == "VALUES" || next_word == "values") {
+						state_code = State::VALUES;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] unreferenced keyword, expect VALUES");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::VALUES: {
+					if (next_word == "(") {
+						state_code = State::INSERT_LEFT_BRACKET;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] unreferenced keyword, expect (");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::INSERT_LEFT_BRACKET: {
+					if (next_word == ")") {
+						state_code = State::INSERT_RIGHT_BRACKET;
+					}
+					else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::INSERT_VALUE_RECEIVED;
+					}
+					else if (next_word != "") {
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::INSERT_VALUE_RECEIVED: {
+					if (next_word == ",") {
+						state_code = State::INSERT_COMMA;
+					}
+					else if (next_word == ")") {
+						state_code = State::INSERT_RIGHT_BRACKET;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] invalid symbol: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::INSERT_COMMA: {
+					if (next_word == ")" || next_word == ";") {
+						// PromptErr("[Invalid Argument] expect another insert value");
+						state_code = State::IDLE;
+						return false;
+					}
+					else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						insert_values_query.Insert(next_word);
+						state_code = State::INSERT_VALUE_RECEIVED;
+					}
+					else if (next_word != "") {
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::INSERT_RIGHT_BRACKET: {
+					if (next_word == ";") {
+						state_code = State::IDLE;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] invalid symbol, expect ;");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE: {
+					if (next_word == "INDEX" || next_word == "index") {
+						state_code = State::CREATE_INDEX;
+					}
+					else if (next_word == "TABLE" || next_word == "table") {
+						state_code = State::CREATE_TABLE;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] expect TABLE or INDEX");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_INDEX: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::CREATE_INDEX_PARSED;
+					}
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] invalid index name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_INDEX_PARSED: {
+					if (next_word == "ON" || next_word == "on")
+						state_code = State::ON;
+					else if (next_word == "") {}
+					else {
+						// PromptErr("[Syntax Error] expect ON");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::ON: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::CREATE_INDEX_TABLE_PARSED;
+					}
+					else if (next_word == "") { 
+						// PromptErr("[Syntax Error] invalid index name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_INDEX_TABLE_PARSED: {
+					if (next_word == "(")
+						state_code = State::CREATE_INDEX_LEFT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect (");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_INDEX_LEFT_BRACKET: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::CREATE_INDEX_ATTR_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid attribute name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_INDEX_ATTR_PARSED: {
+					if (next_word == ")")
+						state_code = State::CREATE_INDEX_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect )");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_INDEX_RIGHT_BRACKET: {
+					if (next_word == ";") {
+						state_code = State::IDLE;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid symbol, expect ;");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_TABLE: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::CREATE_TABLE_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid table name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_TABLE_PARSED: {
+					if (next_word == "(")
+						state_code = State::CREATE_TABLE_LEFT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect (");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_TABLE_LEFT_BRACKET: {
+					if (next_word == "PRIMARY" || next_word == "primary") {
+						state_code = State::CREATE_TABLE_PRIMARY;
+					}
+					else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::CREATE_ATTR_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid keyword: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_TABLE_PRIMARY: {
+					if (next_word == "KEY" || next_word == "key")
+						state_code = State::CREATE_PRIMARY_KEY;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect KEY");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_PRIMARY_KEY: {
+					if (next_word == "(")
+						state_code = State::CREATE_PRIMARY_LEFT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect (");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_PRIMARY_LEFT_BRACKET: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::PRIMARY_ATTR_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid attribute name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::PRIMARY_ATTR_PARSED: {
+					if (next_word == ")")
+						state_code = State::CREATE_PRIMARY_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect )");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_PRIMARY_RIGHT_BRACKET: {
+					if (next_word == ",")
+						state_code = State::CREATE_COMMA;
+					else if (next_word == ")")
+						state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect ) or ,");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_COMMA: {
+					if (next_word == "PRIMARY" || next_word == "primary") {
+						state_code = State::CREATE_TABLE_PRIMARY;
+					}
+					else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::CREATE_ATTR_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid keyword: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_ATTR_PARSED: {
+					if (next_word == "INT" || next_word == "int") {
+						state_code = State::CREATE_INT_PARSED;
+					}
+					else if (next_word == "FLOAT" || next_word == "float") {
+						state_code = State::CREATE_FLOAT_PARSED;
+					}
+					else if (next_word == "CHAR" || next_word == "char") {
+						state_code = State::CREATE_CHAR_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid attribute type: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_INT_PARSED: {
+					if (next_word == "UNIQUE" || next_word == "unique") {
+						state_code = State::UNIQUE_PARSED;
+					}
+					else if (next_word == ",")
+						state_code = State::CREATE_COMMA;
+					else if (next_word == ")")
+						state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid key word: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_CHAR_PARSED: {
+					if (next_word == "(")
+						state_code = State::CHAR_LEFT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid key word: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_FLOAT_PARSED: {
+					if (next_word == "UNIQUE" || next_word == "unique") {
+						state_code = State::UNIQUE_PARSED;
+					}
+					else if (next_word == ",")
+						state_code = State::CREATE_COMMA;
+					else if (next_word == ")")
+						state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid key word: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+
+				case State::CHAR_LEFT_BRACKET: {
+					if (regex_match(next_word, regex("^[0-9]*$"))) {
+						state_code = State::CHAR_BIT_PARSED;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid char size: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CHAR_BIT_PARSED: {
+					if (next_word == ")")
+						state_code = State::CHAR_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid keyword: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CHAR_RIGHT_BRACKET: {
+					if (next_word == "UNIQUE" || next_word == "unique") {
+						state_code = State::UNIQUE_PARSED;
+					}
+					else if (next_word == ",")
+						state_code = State::CREATE_COMMA;
+					else if (next_word == ")")
+						state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid key word: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::UNIQUE_PARSED: {
+					if (next_word == ",")
+						state_code = State::CREATE_COMMA;
+					else if (next_word == ")")
+						state_code = State::CREATE_TABLE_RIGHT_BRACKET;
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] invalid key word: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::CREATE_TABLE_RIGHT_BRACKET: {
+					if (next_word == ";") {
+						state_code = State::IDLE;
+					}
+					else if (next_word != "") {
+						// PromptErr("[Syntax Error] expect ;");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::SELECT: {
+					if (next_word == "*") {
+						select_query.SetSelectAll();
+						state_code = State::SELECT_ALL;
+					}
+					else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::SELECT_ATTR;
+					}
+					else if (next_word == "") {
+						// PromptErr("[Syntax Error] invalid attribute name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::SELECT_ALL: {
+					if (next_word == "FROM" || next_word == "from")
+						state_code = State::SELECT_FROM;
+					else if (next_word == "") {
+						// PromptErr("[Syntax Error] expect FROM");
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::SELECT_ATTR: {
+					if (next_word == ",")
+						state_code = State::SELECT_ATTR_COMMA;
+					else if (next_word == "FROM" || next_word == "from")
+						state_code = State::SELECT_FROM;
+					else if (next_word == "") {
+						// PromptErr("[Syntax Error] invalid keyword: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::SELECT_FROM: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$")))
+						state_code = State::SELECT_TABLE_PARSED;
+					else if (next_word == "") {
+						// PromptErr("[Syntax Error] invalid table name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::SELECT_ATTR_COMMA: {
+					if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
+						state_code = State::SELECT_ATTR;
+					}
+					else if (next_word == "") {
+						// PromptErr("[Syntax Error] invalid attribute name: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				case State::SELECT_TABLE_PARSED: {
+					if (next_word == ";") {
+						state_code = State::IDLE;
+					}
+					else if (next_word == "") {
+						// PromptErr("[Syntax Error] invalid keyword: " + next_word);
+						state_code = State::IDLE;
+						return false;
+					}
+				} break;
+				default:
+					break;
+				}
+				if (!(input >> next_word))
+					break;
+			}
+		}
+		else
+			return false;
+	}
+	return true;
+}
 
 
-
-
-
-
+void Interpreter::ExecFile(string& file_path) {
+	Prompt("EXECFILE" + file_path);
+}
 
 
 

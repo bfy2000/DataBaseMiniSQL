@@ -7,7 +7,7 @@ using namespace std;
 
 enum class State {
 	// default state	
-	IDLE,
+	IDLE,						
 
 	// create index & table
 	CREATE,
@@ -36,7 +36,6 @@ enum class State {
 	CHAR_RIGHT_BRACKET,
 	CHAR_BIT_PARSED,
 	UNIQUE_PARSED,
-
 
 	// select
 	SELECT,
@@ -72,7 +71,6 @@ enum class State {
 
 
 
-
 class Interpreter
 {
 public:
@@ -81,12 +79,13 @@ public:
 
 	
 	State GetState();
-	void SetState(State set_state_code);
-	bool ProcessInput(string& input_string);
-	void ReadInput(istringstream& input);
-	
+	void SetState(State set_state_code);	
+	bool ProcessInput(string& input_string);	// general input process
+	void ReadInput(istringstream& input);		// process every token
+	bool ParseFileInput(string& file_path);		// parse input from file
+	void ExecFile(string& file_path);
 private:
-	State state_code;
+	State state_code;					// current state
 	string tmp_drop_obj;
 	string tmp_insert_table;
 	string tmp_index_name;
