@@ -6,33 +6,33 @@
 
 string rootdir = ".\\minisql\\";
 
-FileInfo filelist = nullptr;
-int fileNum = 0;
+FileInfo filelist = nullptr;//æ–‡ä»¶é“¾è¡¨
+int fileNum = 0;//æ–‡ä»¶æ•°
+int global_block_num = 0;//ç°æœ‰blockæ•°é‡
 
-
-//Ñ°ÕÒ¿Õ¿é
+//å¯»æ‰¾ç©ºå—
 BlockInfo findBlock()
 {
-	static int i = 0;//ÏÖÓĞblockÊıÁ¿
+	
 	FileInfo fileptr = filelist;
 	BlockInfo resblock = nullptr;
 	while (fileptr)
 	{
 		BlockInfo blockptr = fileptr->firstBlock;
-		if (fileptr->freeNum == 0)//Õâ¸öÎÄ¼şÏÂÃæÃ»ÓĞ¿Õ¿éÁË
+		if (fileptr->freeNum == 0)//è¿™ä¸ªæ–‡ä»¶ä¸‹é¢æ²¡æœ‰ç©ºå—äº†
 		{
 			fileptr = fileptr->next;
 			continue;
 		}
 			
-		while (blockptr)//Õâ¸öÎÄ¼şÏÂÃæÓĞ¿Õ¿é
+		while (blockptr)//è¿™ä¸ªæ–‡ä»¶ä¸‹é¢æœ‰ç©ºå—
 		{
-			if (blockptr->isfree)//ÕÒµ½Ò»¸ö¿Õ¿é
+			if (blockptr->isfree)//æ‰¾åˆ°ä¸€ä¸ªç©ºå—
 			{
 				resblock = blockptr;
-				fileptr->freeNum--;//¿Õ¿éÊıÁ¿-1
+				fileptr->freeNum--;//ç©ºå—æ•°é‡-1
 				blockptr->isfree = false;
-				remove_block_from_file(resblock);//°ÑÕâ¸ö¿é´ÓÔ­ÎÄ¼şÖĞÒÆ³ö
+				remove_block_from_file(resblock);//æŠŠè¿™ä¸ªå—ä»åŸæ–‡ä»¶ä¸­ç§»å‡º
 				break;
 			}
 			blockptr = blockptr->next;
@@ -44,9 +44,9 @@ BlockInfo findBlock()
 
 		fileptr = fileptr->next;
 	}
-	//ÒÑ¾­Ã»ÓĞ¿Õ¿éÁË
-	//»¹ÄÜÉêÇë¿Õ¿é
-	if (i < MAX_BLOCK)
+	//å·²ç»æ²¡æœ‰ç©ºå—äº†
+	//è¿˜èƒ½ç”³è¯·ç©ºå—
+	if (global_block_num < MAX_BLOCK)
 	{
 		resblock = new struct blockInfo;
 		
@@ -65,7 +65,7 @@ BlockInfo findBlock()
 		}
 	}
 
-	//²»ÄÜÉêÇë¿Õ¿éÁË£¬ÓÃLRU±éÀúËùÓĞ¿é£¬Ìæ»»µôÒ»¸ö
+	//ä¸èƒ½ç”³è¯·ç©ºå—äº†ï¼Œç”¨LRUéå†æ‰€æœ‰å—ï¼Œæ›¿æ¢æ‰ä¸€ä¸ª
 	int time = 0x7fffffff;
 	fileptr = filelist;
 	while (fileptr)
@@ -73,7 +73,7 @@ BlockInfo findBlock()
 		BlockInfo blockptr = fileptr->firstBlock;
 		while (blockptr)
 		{
-			if (blockptr->call_times < time && !blockptr->lock)//ÓÃLRU£¬Ã»±»ËøµÄ¿ÉÒÔÌæ»»
+			if (blockptr->call_times < time && !blockptr->lock)//ç”¨LRUï¼Œæ²¡è¢«é”çš„å¯ä»¥æ›¿æ¢
 			{
 				time = blockptr->call_times;
 				resblock = blockptr;
@@ -88,13 +88,13 @@ BlockInfo findBlock()
 
 }
 
-//ÔÚfilelistÖĞÕÒÒ»¸öÎÄ¼ş
+//åœ¨filelistä¸­æ‰¾ä¸€ä¸ªæ–‡ä»¶
 FileInfo get_file_info(string fileName, int fileType)
 {
 	if (!filelist)return nullptr;
 	FileInfo fileptr = filelist;
 
-	//ÕÒÎÄ¼ş
+	//æ‰¾æ–‡ä»¶
 	while (fileptr)
 	{
 		if (fileptr->fileName == fileName && fileptr->type == fileType)
@@ -102,12 +102,12 @@ FileInfo get_file_info(string fileName, int fileType)
 		fileptr = fileptr->next;
 	}
 
-	//ÎÄ¼ş²»´æÔÚ
+	//æ–‡ä»¶ä¸å­˜åœ¨
 	cout << "get_file_info::No such file" << endl;
 	return nullptr;
 }
 
-//ÔÚbufferÖĞ²éÕÒÒ»¸ö¿é
+//åœ¨bufferä¸­æŸ¥æ‰¾ä¸€ä¸ªå—
 BlockInfo get_block_in_file(FileInfo file, int blockNum)
 {
 	if (!file)
@@ -125,21 +125,21 @@ BlockInfo get_block_in_file(FileInfo file, int blockNum)
 	return nullptr;
 }
 
-//ÔÚbufferÖĞ°ÑÒ»¸ö¿éÒÆ³ö¶ÔÓ¦ÎÄ¼ş
+//åœ¨bufferä¸­æŠŠä¸€ä¸ªå—ç§»å‡ºå¯¹åº”æ–‡ä»¶
 void remove_block_from_file(BlockInfo block_to_remove)
 {
 	FileInfo file = block_to_remove->file;
 	BlockInfo last_block = nullptr;
 	BlockInfo blockptr = file->firstBlock;
 
-	while (blockptr)//ÔÚ¸ÃÎÄ¼şÖĞÑ°ÕÒ¶ÔÓ¦¿é
+	while (blockptr)//åœ¨è¯¥æ–‡ä»¶ä¸­å¯»æ‰¾å¯¹åº”å—
 	{
 		if (blockptr->next == block_to_remove)
 			break;
 		last_block = blockptr;
 		blockptr = blockptr->next;
 	}
-	if (blockptr)//ÕÒµ½ÁË
+	if (blockptr)//æ‰¾åˆ°äº†
 	{
 		if (last_block)
 			file->firstBlock = blockptr->next;
@@ -152,7 +152,7 @@ void remove_block_from_file(BlockInfo block_to_remove)
 	return;
 }
 
-//»º³åÇø²Ù×÷£º°ÑÒ»¸ö¿é¹Òµ½ÎÄ¼şÉÏ
+//ç¼“å†²åŒºæ“ä½œï¼šæŠŠä¸€ä¸ªå—æŒ‚åˆ°æ–‡ä»¶ä¸Š
 void add_block_to_file(BlockInfo block,FileInfo file)
 {
 	block->file = file;
@@ -161,20 +161,20 @@ void add_block_to_file(BlockInfo block,FileInfo file)
 	return;
 }
 
-//´Ó´ÅÅÌ¶ÁÒ»¸ö¿é
+//ä»ç£ç›˜è¯»ä¸€ä¸ªå—
 BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, BlockInfo tmpblock)
 {
-	if (!tmpblock)//Ã»Ìá¹©¿é£¬ÏÈÕÒÒ»¸ö
+	if (!tmpblock)//æ²¡æä¾›å—ï¼Œå…ˆæ‰¾ä¸€ä¸ª
 	{
 		tmpblock = findBlock();
-		tmpblock->blockNum = blocknum;
 		tmpblock->isfree = 0;
 	}
-	//´ò¿ªÎÄ¼ş
+	tmpblock->blockNum = blocknum;
+	//æ‰“å¼€æ–‡ä»¶
 	string filepath = rootdir + db_name;
-	if (file->type == 0)	//±í
+	if (file->type == 0)	//è¡¨
 		filepath += "\\table\\";
-	else					//Ë÷Òı
+	else					//ç´¢å¼•
 		filepath += "\\index\\";
 	filepath += file->fileName + ".txt";
 
@@ -187,17 +187,20 @@ BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, Bloc
 		return nullptr;
 	}
 
-	//¶ÁÈ¡Êı¾İ
+	//è¯»å–æ•°æ®
 	int offset = BLOCK_SIZE * (blocknum);
 	infile.seekg(offset, ios::beg);
 	if(!tmpblock->cBlock)
 		tmpblock->cBlock = new char[BLOCK_SIZE];
 	infile.read(tmpblock->cBlock,BLOCK_SIZE);
 	infile.close();
+
+	tmpblock->charNum = strlen(tmpblock->cBlock);
+
 	return tmpblock;
 }
 
-//°ÑÒ»¸ö¿éĞ´µ½´ÅÅÌ
+//æŠŠä¸€ä¸ªå—å†™åˆ°ç£ç›˜
 void write_block_to_disk(string db_name, BlockInfo block)
 {
 	if (!block->dirtyBit || block->isfree || block->charNum == 0)
@@ -210,26 +213,25 @@ void write_block_to_disk(string db_name, BlockInfo block)
 		return;
 	}
 
-	//´ò¿ªÎÄ¼ş
+	//æ‰“å¼€æ–‡ä»¶
 	string filepath = rootdir + db_name;
-	if (file->type == 0)	//±í
+	if (file->type == 0)	//è¡¨
 		filepath += "\\table\\";
-	else					//Ë÷Òı
+	else					//ç´¢å¼•
 		filepath += "\\index\\";
 	filepath += file->fileName + ".txt";
 
-	//¶ÁÈ¡Êı¾İ
+	//è¯»å–æ•°æ®
 	int offset = BLOCK_SIZE * (block->blockNum);
-	ofstream ofile;
-	ofile.open(filepath);
+	fstream ofile(filepath,ios::out | ios::in );
 	ofile.seekp(offset, ios::beg);
 	string str(block->cBlock);
-	ofile.write(block->cBlock, str.length());
+	ofile.write(block->cBlock, BLOCK_SIZE);
 	ofile.close();
 
 }
 
-//´ÓÎÄ¼şÖĞ¶ÁÈ¡Ä³¸ö¿é
+//ä»æ–‡ä»¶ä¸­è¯»å–æŸä¸ªå—
 BlockInfo get_block_info(string db_name, string table_name, int file_type, int BlockNum)
 {
 	
@@ -237,26 +239,26 @@ BlockInfo get_block_info(string db_name, string table_name, int file_type, int B
 	if (!fileptr)
 	{
 		cout << "get_block_info::No such file!" << endl;
-		return nullptr;//Ã»ÕÒµ½¶ÔÓ¦ÎÄ¼ş
+		return nullptr;//æ²¡æ‰¾åˆ°å¯¹åº”æ–‡ä»¶
 	}
 	
 
 	BlockInfo blockptr = get_block_in_file(fileptr, BlockNum);
 	
-	if (blockptr && blockptr->lock)//¿éÊÇ·ñ±»Ëø×¡
+	if (blockptr && blockptr->lock)//å—æ˜¯å¦è¢«é”ä½
 	{
 		cout << "get_block_info::The block has been locked" << endl;
 		return blockptr;
 	}
 
-	if (blockptr)//ÕÒµ½ÁËblocknumµÄ¿é
+	if (blockptr)//æ‰¾åˆ°äº†blocknumçš„å—
 	{
-		if (!blockptr->isfree)//²»ÊÇ¿Õ¿é£¬Ö±½Ó·µ»Ø
+		if (!blockptr->isfree)//ä¸æ˜¯ç©ºå—ï¼Œç›´æ¥è¿”å›
 		{
 			blockptr->call_times++;
 			return blockptr;
 		}
-		else//ÊÇ¿Õ¿é£¬ÏÈ´Ó´ÅÅÌÖĞ¶ÁÈ¡³öÀ´ÔÙ·µ»Ø
+		else//æ˜¯ç©ºå—ï¼Œå…ˆä»ç£ç›˜ä¸­è¯»å–å‡ºæ¥å†è¿”å›
 		{
 			blockptr = read_block_from_disk(fileptr, db_name, BlockNum, blockptr);
 			blockptr->call_times = 1;
@@ -265,14 +267,14 @@ BlockInfo get_block_info(string db_name, string table_name, int file_type, int B
 	}
 
 
-	//ÎÄ¼şÔÚbufferÖĞÃ»ÓĞ±àºÅÎªblocknumµÄ¿é
+	//æ–‡ä»¶åœ¨bufferä¸­æ²¡æœ‰ç¼–å·ä¸ºblocknumçš„å—
 	cout << "get_block_info::can't find this block in buffer" << endl;
 	blockptr = read_block_from_disk(fileptr, db_name, BlockNum, nullptr);
 	blockptr->call_times = 1;
 	return blockptr;
 }
 
-//¹Ø±ÕÎÄ¼ş
+//å…³é—­æ–‡ä»¶
 void closefile(string db_name, FileInfo file)
 {
 	if (file == nullptr)
@@ -290,11 +292,12 @@ void closefile(string db_name, FileInfo file)
 		blockptr = blockptr->next;
 		delete[] tmpblock->cBlock;
 		delete tmpblock;
+		global_block_num--;
 	}
 
-	//´ÓÎÄ¼ş±íÖĞÉ¾³ı
+	//ä»æ–‡ä»¶è¡¨ä¸­åˆ é™¤
 	FileInfo fileptr = filelist;
-	if (fileptr == file)//filelistÍ·½áµã
+	if (fileptr == file)//filelistå¤´ç»“ç‚¹
 	{
 		filelist = file->next;
 		delete file;
@@ -313,7 +316,7 @@ void closefile(string db_name, FileInfo file)
 	}
 }
 
-//°ÑÒ»¸öÎÄ¼ş¼ÓÈëfilelist
+//æŠŠä¸€ä¸ªæ–‡ä»¶åŠ å…¥filelist
 FileInfo add_file_to_list(string table_name, int type, int recordAmount, int recordlen)
 {
 	if (fileNum >= MAX_ACTIVE_FILE)
@@ -335,7 +338,7 @@ FileInfo add_file_to_list(string table_name, int type, int recordAmount, int rec
 	return newfile;
 }
 
-//Ëø×¡Ò»¸ö¿é
+//é”ä½ä¸€ä¸ªå—
 void lock_block(BlockInfo block)
 {
 	if (block == nullptr)
@@ -346,7 +349,7 @@ void lock_block(BlockInfo block)
 	block->lock = 1;
 }
 
-//½âËøÒ»¸ö¿é
+//è§£é”ä¸€ä¸ªå—
 void unlock_block(BlockInfo block)
 {
 	if (block == nullptr)
@@ -359,7 +362,19 @@ void unlock_block(BlockInfo block)
 
 void write_to_block(BlockInfo block, char to_write[])
 {
-	block->charNum += strlen(to_write);
+	block->charNum = sizeof(to_write);
 	strcpy_s(block->cBlock, BLOCK_SIZE, to_write);
+}
+
+void add_to_block(BlockInfo block, char to_write[])
+{
+	if (block->charNum == 0)
+	{
+		write_to_block(block, to_write);
+		return;
+	}
+
+	block->charNum += sizeof(to_write);
+	strcat_s(block->cBlock, BLOCK_SIZE, to_write);
 }
 
