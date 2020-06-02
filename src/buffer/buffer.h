@@ -72,3 +72,5 @@ void lock_block(BlockInfo block);
 void unlock_block(BlockInfo block);
 
 void write_to_block(BlockInfo block, char to_write[]);
+
+void add_to_block(BlockInfo block, char to_write[]);
