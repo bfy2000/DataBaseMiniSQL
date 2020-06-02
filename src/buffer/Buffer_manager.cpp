@@ -8,37 +8,77 @@ using namespace std;
 
 int main()
 {
+	//å»ºç«‹ç›®å½•
+	string folderPath = ".\\minisql";
+	string command;
+	command = "mkdir " + folderPath;
+	system(command.c_str());
+
+	folderPath += "\\database";
+	command += "\\database";
+	system(command.c_str());
+
+	string indexdir = folderPath + "\\index";
+	command = "mkdir " + indexdir;
+	system(command.c_str());
+
+	string tabledir = folderPath + "\\table";
+	command = "mkdir " + tabledir;
+	system(command.c_str());
+
 	string db_name("database");
 	string filename1("table1");
 	string filename2("table2");
 	string filename3("table3");
 
-	//ÔÚfilelistÖĞ²åÈëÒ»¸öÃûÎªfilename1£¬type=0£¨±í£©£¬0Ìõ¼ÇÂ¼£¬¼ÇÂ¼³¤20µÄÎÄ¼ş£¬²¢·µ»ØÕâ¸öÎÄ¼şµÄfileinfo
-	//ÕâÀïÖ»ÊÇÓÃÀı£¬Ê¹ÓÃµÄÒ»Ğ©¾ßÌå²ÎÊıÒª´Ócatalog»ñµÃ
-	//filelistÖ÷ÒªÓÃÓÚ¿ØÖÆÎÄ¼şÊıÁ¿£¬·ÀÖ¹Í¬Ê±´¦ÀíÌ«¶àÎÄ¼ş£¬ÉÏÏŞÎª5¡£
+	//åœ¨filelistä¸­æ’å…¥ä¸€ä¸ªåä¸ºfilename1ï¼Œtype=0ï¼ˆè¡¨ï¼‰ï¼Œ0æ¡è®°å½•ï¼Œè®°å½•é•¿20çš„æ–‡ä»¶ï¼Œå¹¶è¿”å›è¿™ä¸ªæ–‡ä»¶çš„fileinfo
+	//è¿™é‡Œåªæ˜¯ç”¨ä¾‹ï¼Œä½¿ç”¨çš„ä¸€äº›å…·ä½“å‚æ•°è¦ä»catalogè·å¾—
+	//filelistä¸»è¦ç”¨äºæ§åˆ¶æ–‡ä»¶æ•°é‡ï¼Œé˜²æ­¢åŒæ—¶å¤„ç†å¤ªå¤šæ–‡ä»¶ï¼Œä¸Šé™ä¸º5ã€‚
 	FileInfo file1 = add_file_to_list(filename1, 0, 0, 20);
-	//ÏÂÃæÁ½¸öÀàËÆÉÏÃæ
-	FileInfo file2 = add_file_to_list(filename2, 0, 0, 30);
-	FileInfo file3 = add_file_to_list(filename2, 0, 0, 40);
 
-	//»ñÈ¡filelistÖĞÒÑÓĞµÄÎÄ¼ş¿ÉÒÔÓÃÕâ¸öº¯Êı
+	//è·å–filelistä¸­å·²æœ‰çš„æ–‡ä»¶å¯ä»¥ç”¨è¿™ä¸ªå‡½æ•°
 	//FileInfo file1 = get_file_info(filename1, 0);
 
-	//ÉêÇëÒ»¸ö¿Õ¿é
+	//ç”³è¯·ä¸€ä¸ªç©ºå—
 	BlockInfo emptyblock = findBlock();
 
-	//Ëæ±ãĞ´µãÊ²Ã´
-	char ss[30] = "abcdefghijklmnopqrstuvwxyz";
-
-	//°ÑÕâ¸ö¿Õ¿é·Åµ½file1ÏÂÃæ
+	//éšä¾¿å†™ç‚¹ä»€ä¹ˆ
+	char ss[300] = "abcdefghijklmnopqrstuvwxyz\n";
+	char rr[300] = "xyxyxyxyxyxyxyxyxyxyxyxy\n";
+	//æŠŠè¿™ä¸ªç©ºå—æ”¾åˆ°file1ä¸‹é¢
 	add_block_to_file(emptyblock, file1);
 	emptyblock->dirtyBit = 1;
 	emptyblock->isfree = 0;
 	emptyblock->blockNum = 0;
-	
-	write_to_block(emptyblock, ss);
 
+	//writeæ˜¯ä»¥è¦†ç›–æ–¹å¼å†™å—çš„å†…å®¹ï¼Œå†…å®¹é•¿åº¦é™åˆ¶ä¸º4096
+	write_to_block(emptyblock, ss);
+	//addæ˜¯ä»¥è¿½åŠ çš„æ–¹å¼å†™å—çš„å†…å®¹ï¼Œé•¿åº¦é™åˆ¶4096
+	for (int i = 0;i < 100;i++)
+		add_to_block(emptyblock, ss);
+		
+
+	//ç›´æ¥å†™å…¥ç£ç›˜ï¼Œä¸å»ºè®®ç›´æ¥ç”¨è¿™ä¸ªå‡½æ•°ï¼Œæœ€å¥½ç”¨closefileå†™
+	write_block_to_disk(db_name, emptyblock);
+
+	emptyblock->blockNum = 1;
+	write_to_block(emptyblock, rr);
+	//for (int i = 0;i < 100;i++)
+		add_to_block(emptyblock, rr);
+	//closefileä¼šæŠŠæ–‡ä»¶åœ¨bufferä¸­æ‰€æœ‰å—éƒ½å†™è¿›å»ï¼Œå¹¶deleteæ‰è¿™äº›å—ï¼Œç„¶åå°†æ–‡ä»¶ä»filelistä¸­ç§»é™¤
 	closefile(db_name, file1);
 
+
+	file1 = add_file_to_list(filename1, 0, 0, 20);
+	//æ­¤æ—¶ä¹‹å‰çš„emptyblockå·²ç»è¢«deleteäº†ï¼Œå› æ­¤é‡æ–°åˆ†é…
+	emptyblock = findBlock();
+	//è¯»file1çš„1å·å—
+	emptyblock = read_block_from_disk(file1, db_name, 1, emptyblock);
+	cout << strlen(emptyblock->cBlock) << endl;
+	closefile(db_name, file1);
+	
+	
+
+	system("pause");
 	return 0;
 }
