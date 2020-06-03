@@ -1,8 +1,7 @@
 #ifndef DEBUG
 #define DEBUG
-#include"buffer.h"
+#include "buffer.h"
 #endif // !DEBUG
-
 
 string rootdir = ".\\minisql\\";
 
@@ -60,6 +59,7 @@ BlockInfo findBlock()
 			resblock->lock = 0;
 			resblock->next = nullptr;
 			resblock->cBlock = new char[BLOCK_SIZE];
+			memset(resblock->cBlock, 0, BLOCK_SIZE * sizeof(char));//初始化
 			if (resblock->cBlock)
 				return resblock;
 		}
@@ -178,8 +178,8 @@ BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, Bloc
 		filepath += "\\index\\";
 	filepath += file->fileName + ".txt";
 
-	ifstream infile;
-	infile.open(filepath);
+	fstream infile(filepath,ios::in|ios::binary);
+	//infile.open(filepath);
 
 	if (!infile.is_open())
 	{
@@ -192,6 +192,10 @@ BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, Bloc
 	infile.seekg(offset, ios::beg);
 	if(!tmpblock->cBlock)
 		tmpblock->cBlock = new char[BLOCK_SIZE];
+
+	//需要先清空，否则会被自动填充屯屯屯
+	memset(tmpblock->cBlock, 0, BLOCK_SIZE * sizeof(char));
+
 	infile.read(tmpblock->cBlock,BLOCK_SIZE);
 	infile.close();
 
@@ -253,7 +257,7 @@ BlockInfo get_block_info(string db_name, string table_name, int file_type, int B
 
 	if (blockptr)//找到了blocknum的块
 	{
-		if (!blockptr->isfree)//不是空块，直接返回
+		if (!blockptr->isfree || strlen(blockptr->cBlock) == 0)//不是空块，直接返回
 		{
 			blockptr->call_times++;
 			return blockptr;
@@ -262,14 +266,17 @@ BlockInfo get_block_info(string db_name, string table_name, int file_type, int B
 		{
 			blockptr = read_block_from_disk(fileptr, db_name, BlockNum, blockptr);
 			blockptr->call_times = 1;
+			blockptr->isfree = 0;
 			return blockptr;
 		}
 	}
 
 
 	//文件在buffer中没有编号为blocknum的块
-	cout << "get_block_info::can't find this block in buffer" << endl;
 	blockptr = read_block_from_disk(fileptr, db_name, BlockNum, nullptr);
+	add_block_to_file(blockptr, fileptr);
+	blockptr->isfree = 0;
+	blockptr->file = fileptr;
 	blockptr->call_times = 1;
 	return blockptr;
 }
@@ -322,6 +329,7 @@ FileInfo add_file_to_list(string table_name, int type, int recordAmount, int rec
 	if (fileNum >= MAX_ACTIVE_FILE)
 	{
 		cout << "Cannot add more file to list" << endl;
+		return nullptr;
 	}
 	FileInfo newfile = new struct fileInfo;
 	newfile->next = filelist;
@@ -362,7 +370,7 @@ void unlock_block(BlockInfo block)
 
 void write_to_block(BlockInfo block, char to_write[])
 {
-	block->charNum = sizeof(to_write);
+	block->charNum = strlen(to_write);
 	strcpy_s(block->cBlock, BLOCK_SIZE, to_write);
 }
 
@@ -374,7 +382,71 @@ void add_to_block(BlockInfo block, char to_write[])
 		return;
 	}
 
-	block->charNum += sizeof(to_write);
+	block->charNum += strlen(to_write);
 	strcat_s(block->cBlock, BLOCK_SIZE, to_write);
 }
 
+
+bool readData(string fileName, string db_name, int index, char to_read[], int& length,int filetype)
+{
+	int blocknum = index / BLOCK_SIZE;
+	int offset_b = index % BLOCK_SIZE;
+	
+	BlockInfo block = get_block_info(db_name, fileName, filetype, blocknum);
+	//没有这个块
+	if (!block)
+	{
+		//返回空字符串和false
+		strcpy_s(to_read, 5, "");
+		return false;
+	}
+	bool flag = true;
+	//长度不足，改短
+	if (strlen(block->cBlock) < offset_b + length)
+	{
+		length = strlen(block->cBlock) - index;
+		flag = false;
+	}
+		
+	strncpy_s(to_read, length+1, block->cBlock + offset_b, length);
+	return flag;
+
+}
+
+//把to_write[]数据的length长度的数据，写入从block开始的第index个字节上，注意把后面的数据后移，防止覆盖，如果index<0那么表示将数据插入最后
+bool writeToIndex(string fileName, int index, char* to_write, int length, string db_name, int filetype)
+{
+	int blocknum = index/BLOCK_SIZE;
+	BlockInfo block = get_block_info(db_name, fileName, filetype, blocknum);
+	block->dirtyBit = 1;
+	if (!block)//写入失败
+		return false;
+	FileInfo file = block->file;
+	int rec_len = file->recordLength;//单条记录长度
+	int rec_tot = length / rec_len;//要插入的记录数
+	int rec_avai = (BLOCK_SIZE - block->charNum) / rec_len;//要求块剩余能插入记录的空间
+	if (length > BLOCK_SIZE - strlen(block->cBlock))//对应块写不下，找后面的某个块继续写进去
+	{
+		int offset_w = 0;//字符串中的偏移量
+		while (1)
+		{
+			char tmp[BLOCK_SIZE];
+			strncpy_s(tmp,BLOCK_SIZE, to_write + offset_w, rec_avai*rec_len);
+			add_to_block(block, tmp);
+
+			rec_tot -= rec_avai;//待写入的记录数减少
+			offset_w += rec_avai * rec_len;//已写入的长度增加，字符串偏移量增加
+			if (offset_w >= length)
+				break;
+			blocknum++;//看下一块
+			block = get_block_info(db_name, fileName, filetype, blocknum);
+			block->dirtyBit = 1;
+			rec_avai = (BLOCK_SIZE - block->charNum)/rec_len;//计算在当前块需要写入的记录条数
+			if (rec_avai > rec_tot)
+				rec_avai = rec_tot;
+		}
+	}
+	else
+		add_to_block(block, to_write);
+	return true;
+}
