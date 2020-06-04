@@ -20,7 +20,7 @@ private:
 	string tableFilename = "table_catalog";
 	string indexFilename = "index_catalog";
 
-	//´Ó table_catalogÎÄ¼şÖĞ¶ÁÈ¡ËùÓĞÄ£Ê½ĞÅÏ¢²¢²åÈëµ½map tablesÖĞ
+	//ä» table_catalogæ–‡ä»¶ä¸­è¯»å–æ‰€æœ‰æ¨¡å¼ä¿¡æ¯å¹¶æ’å…¥åˆ°map tablesä¸­
 	void initial_table() {
 		ifstream file;
 		file.open(tableFilename, ios::in);
@@ -186,7 +186,7 @@ private:
 	}
 
 public:
-	//initialize Catalog£¬read all the information about schemes from files table_catalog and index_catalog 
+	//initialize Catalogï¼Œread all the information about schemes from files table_catalog and index_catalog 
 	void initial_catalog(){
 		initial_table();
 		initial_index();

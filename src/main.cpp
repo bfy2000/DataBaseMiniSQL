@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
         Interpreter interpreter;
 
         while (interpreter.GetState() != State::QUIT) {
-
             //* print line prompt
             if (interpreter.GetState() == State::IDLE)
                 cout << " >> ";
@@ -40,15 +39,15 @@ int main(int argc, char *argv[]) {
         Prompt("\n\t*** Bye ***\n\n", green);
     } break;
     case 2: {
-        Interpreter interpreter;
-        file_path = argv[1];
+		//Interpreter interpreter;
+		//file_path = argv[1];
 
-        if (interpreter.ParseFileInput(file_path)) {
-            interpreter.ExecFile(file_path);
-        }
-        else {
-            PromptErr("Execution failed due to some syntax error.");
-        }
+		//if (interpreter.ParseFileInput(file_path)) {
+		//	interpreter.ExecFile(file_path);
+		//}
+		//else {
+		//	PromptErr("Execution failed due to some syntax error.");
+		//}
     } break;
     default:
         PromptErr("[Syntax Error] too much arguments, expect 1 or 2");

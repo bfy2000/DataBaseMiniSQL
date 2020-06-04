@@ -46,7 +46,7 @@ bool is_float(string myString);
 
 bool is_integer(string const& n) noexcept;
 
-
+bool is_expr(string& s);
 
 
 

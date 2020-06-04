@@ -1,6 +1,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <regex>
 
 #include "Utils.h"
 
@@ -60,5 +61,10 @@ bool is_integer(std::string const& n) noexcept
 	return false;
 }
 
-
+bool is_expr(string& s) {
+	if (regex_match(s, regex("^[a-zA-Z0-9_]*$")) || s[0] == '\\')
+		return true;
+	else
+		return is_integer(s) || is_float(s);
+}
 

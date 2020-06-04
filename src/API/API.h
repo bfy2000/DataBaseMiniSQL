@@ -11,6 +11,23 @@ enum Type {		// attribute types
 	UNDEFINED
 };
 
+enum CMP {
+	EQUAL,
+	NOT_EQUAL,
+	GREATER,
+	GREATER_EQUAL,
+	LESS,
+	LESS_EQUAL  
+};
+
+struct WhereExpr {
+	string expr1;
+	CMP cmp;
+	string expr2;
+	WhereExpr(string &in_expr1, CMP &in_cmp, string &in_expr2)
+		:expr1{ in_expr1 }, cmp{ in_cmp }, expr2{ in_expr2 } {}
+};
+
 struct InsertVal		// insert values
 {
 	string val;			// value
@@ -82,14 +99,38 @@ public:
 	void Clear();
 	void SetSelectAll();
 	void SetSelectTable(string &table);
+	void SetWhereExpr(string& expr2);
+	void SetCmp(CMP in_cmp);
+	void SetExpr1(string& in_expr1);
 
 private:
 	vector<string> select_attr_list;
 	string select_table_name;
 	bool select_all;
+	vector<WhereExpr> where_expr_list;
+	string tmp_expr1;
+	CMP tmp_cmp;
 };
 
+class DeleteQuery
+{
+public:
+	DeleteQuery();
+	~DeleteQuery();
 
+	void Query();
+	void Clear();
+	void SetDeleteTable(string& table);
+	void SetExpr1(string& in_expr1);
+	void SetCmp(CMP in_cmp);
+	void SetWhereExpr(string& expr2);
+
+private:
+	string delete_table_name;
+	vector<WhereExpr> where_expr_list;
+	string tmp_expr1;
+	CMP tmp_cmp;
+};
 
 
 

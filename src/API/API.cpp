@@ -184,7 +184,9 @@ void SelectQuery::Insert(string &attr) {
 void SelectQuery::Clear() {
 	select_table_name = "";
 	select_all = false;
+	tmp_expr1 = "";
 	vector<string>().swap(select_attr_list);
+	vector<WhereExpr>().swap(where_expr_list);
 }
 
 void SelectQuery::SetSelectAll() {
@@ -195,13 +197,50 @@ void SelectQuery::SetSelectTable(string& table) {
 	select_table_name = table;
 }
 
+void SelectQuery::SetWhereExpr(string& expr2) {
+	where_expr_list.push_back(WhereExpr(tmp_expr1, tmp_cmp, expr2));
+}
+
+void SelectQuery::SetCmp(CMP in_cmp) {
+	tmp_cmp = in_cmp;
+}
 
 
+void SelectQuery::SetExpr1(string& in_expr1) {
+	tmp_expr1 = in_expr1;
+}
+
+//--------------------------------------------------------------------------
 
 
+DeleteQuery::DeleteQuery() {}
 
+DeleteQuery::~DeleteQuery() {}
 
+void DeleteQuery::Query() {
+	Prompt("DELETE ...");
+}
 
+void DeleteQuery::Clear() {
+	delete_table_name = "";
+	vector<WhereExpr>().swap(where_expr_list);
+}
+
+void DeleteQuery::SetExpr1(string& in_expr1) {
+	tmp_expr1 = in_expr1;
+}
+
+void DeleteQuery::SetCmp(CMP in_cmp) {
+	tmp_cmp = in_cmp;
+}
+
+void DeleteQuery::SetWhereExpr(string& expr2) {
+	where_expr_list.push_back(WhereExpr(tmp_expr1, tmp_cmp, expr2));
+}
+
+void DeleteQuery::SetDeleteTable(string& table) {
+	delete_table_name = table;
+}
 
 
 

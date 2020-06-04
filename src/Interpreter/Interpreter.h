@@ -7,7 +7,7 @@ using namespace std;
 
 enum class State {
 	// default state	
-	IDLE,						
+	IDLE,
 
 	// create index & table
 	CREATE,
@@ -44,6 +44,21 @@ enum class State {
 	SELECT_ATTR_COMMA,
 	SELECT_FROM,
 	SELECT_TABLE_PARSED,
+	SELECT_WHERE_PARSED,
+	SELECT_EXPR1_PARSED,
+	SELECT_CMP_PARSED,
+	SELECT_EXPR2_PARSED,
+	SELECT_AND_PARSED,
+
+	// delete
+	DELETE,
+	DELETE_FROM,
+	DELETE_TABLE_PARSED,
+	DELETE_WHERE_PARSED,
+	DELETE_EXPR1_PARSED,
+	DELETE_CMP_PARSED,
+	DELETE_EXPR2_PARSED,
+	DELETE_AND_PARSED,
 
 	// insert
 	INSERT,
@@ -82,10 +97,10 @@ public:
 	void SetState(State set_state_code);	
 	bool ProcessInput(string& input_string);	// general input process
 	void ReadInput(istringstream& input);		// process every token
-	bool ParseFileInput(string& file_path);		// parse input from file
+	//bool ParseFileInput(string& file_path);		// parse input from file
 	void ExecFile(string& file_path);
 private:
-	State state_code;					// current state
+	State state_code;							// current state
 	string tmp_drop_obj;
 	string tmp_insert_table;
 	string tmp_index_name;
@@ -95,6 +110,7 @@ private:
 	InsertQuery insert_values_query;
 	CreateTable create_table;
 	SelectQuery select_query;
+	DeleteQuery delete_query;
 };
 
 
