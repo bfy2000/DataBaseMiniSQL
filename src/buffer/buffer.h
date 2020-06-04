@@ -74,3 +74,10 @@ void unlock_block(BlockInfo block);
 void write_to_block(BlockInfo block, char to_write[]);
 
 void add_to_block(BlockInfo block, char to_write[]);
+
+//把to_write[]数据的length长度的数据，写入从block开始的第index个字节上，注意把后面的数据后移，防止覆盖，如果index<0那么表示将数据插入最后
+bool writeToIndex(string fileName, int index, char* to_write, int length, string db_name, int filetype);
+
+//给出fileName和index（从block开始的第index个字节），后面读取length长度的数据，保存到to_read指针上，输入保证这个指针能存下，如果数据读取读不到那么长的数据，则修改length，返回false
+bool readData(string fileName, string db_name, int index, char to_read[], int& length, int filetype);
+
