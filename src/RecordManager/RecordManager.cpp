@@ -223,13 +223,13 @@ bool RecordManager::judgeCondition(Tuple tuple, SelectCondition condition) {
   } else if (condition.opt == LESS) {
     if (tuple.getData()[condition.attributeIndex] < condition.value)
       return true;
-  } else if (condition.opt == LESS_OR_EQUAL) {
+  } else if (condition.opt == LESS_EQUAL) {
     if (tuple.getData()[condition.attributeIndex] <= condition.value)
       return true;
   } else if (condition.opt == EQUAL) {
     if (tuple.getData()[condition.attributeIndex] == condition.value)
       return true;
-  } else if (condition.opt == GREATER_OR_EQUAL) {
+  } else if (condition.opt == GREATER_EQUAL) {
     if (tuple.getData()[condition.attributeIndex] >= condition.value)
       return true;
   } else if (condition.opt == GREATER) {
