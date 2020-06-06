@@ -1,17 +1,17 @@
 #ifndef __ELEMENT_H__
 #define __ELEMENT_H__
-#include "FieldType.h"
+#include "../catalog_manager/FieldType.h"
 #include <string>
 
-/*¶¨ÒåÁËÒ»¸öÔªËØ£¬°üº¬ÆäÀàĞÍÒÔ¼°Êı¾İµÄ´æ·Å£¬Í¨¹ıÔªËã·ûÖØÔØÉè¼ÆÊµÏÖ²»Í¬µÄ±È½Ï·ûÔËËã*/
+/*å®šä¹‰äº†ä¸€ä¸ªå…ƒç´ ï¼ŒåŒ…å«å…¶ç±»å‹ä»¥åŠæ•°æ®çš„å­˜æ”¾ï¼Œé€šè¿‡å…ƒç®—ç¬¦é‡è½½è®¾è®¡å®ç°ä¸åŒçš„æ¯”è¾ƒç¬¦è¿ç®—*/
 class Element {
 public:
 	NumType type;
 	int m_int;
 	float m_float;
 	std::string m_char;
-	int length; // ×¢Òâ type=CHAR Ê±£¬ÕâÀïµÄ length = ×î´óÄÜ±£´æ×Ö´®×ª³¤¶È+1£¬ÒòÎª×îºóÒ»¸öÊÇ'\0'
-	// ·ñÔò length = 4£¨Õë¶Ô INT ºÍ FLOAT£©
+	int length; // æ³¨æ„ type=CHAR æ—¶ï¼Œè¿™é‡Œçš„ length = æœ€å¤§èƒ½ä¿å­˜å­—ä¸²è½¬é•¿åº¦+1ï¼Œå› ä¸ºæœ€åä¸€ä¸ªæ˜¯'\0'
+	// å¦åˆ™ length = 4ï¼ˆé’ˆå¯¹ INT å’Œ FLOATï¼‰
 
 	bool operator<(Element &e);
 	bool operator==(const Element &e);
@@ -45,37 +45,37 @@ public:
 	void setLength(int l) { length = l; }
 
 	void elementToChar(char* c) {
-		if (type == INT) {//int³¤¶ÈÊÇ4×Ö½Ú
+		if (type == INT) {//inté•¿åº¦æ˜¯4å­—èŠ‚
 			memcpy(c, &m_int, length);
 		}
-		else if (type == FLOAT) {//float³¤¶ÈÊÇ4×Ö½Ú
+		else if (type == FLOAT) {//floaté•¿åº¦æ˜¯4å­—èŠ‚
 			memcpy(c, &m_float, length);
 		}
-		else {//×î³¤ÄÜ¹»´æ´¢length¸ö'a'
+		else {//æœ€é•¿èƒ½å¤Ÿå­˜å‚¨lengthä¸ª'a'
 			for (int i = 0; i < length; i++) {
 				c[i] = m_char[i];
 			}
 		}
 	}
 	void charToElement(char* c) {
-		if (type == INT) {//int³¤¶ÈÊÇ4×Ö½Ú
+		if (type == INT) {//inté•¿åº¦æ˜¯4å­—èŠ‚
 			memcpy(&m_int, c, length);
 		}
-		else if (type == FLOAT) {//float³¤¶ÈÊÇ4×Ö½Ú
+		else if (type == FLOAT) {//floaté•¿åº¦æ˜¯4å­—èŠ‚
 			memcpy(&m_float, c, length);
 		}
-		else {//×î³¤ÄÜ¹»´æ´¢length¸ö'a'
-			m_char = string(c, length);//µ«ÊÇ´æ´¢µÄ¿Õ¼äĞèÒª+1
+		else {//æœ€é•¿èƒ½å¤Ÿå­˜å‚¨lengthä¸ª'a'
+			m_char = string(c, length);//ä½†æ˜¯å­˜å‚¨çš„ç©ºé—´éœ€è¦+1
 		}
 	}
 	void printElement() {
-		if (type == INT) {//int³¤¶ÈÊÇ4×Ö½Ú
+		if (type == INT) {//inté•¿åº¦æ˜¯4å­—èŠ‚
 			cout << m_int;
 		}
-		else if (type == FLOAT) {//float³¤¶ÈÊÇ4×Ö½Ú
+		else if (type == FLOAT) {//floaté•¿åº¦æ˜¯4å­—èŠ‚
 			cout << m_float;
 		}
-		else {//×î³¤ÄÜ¹»´æ´¢length¸ö'a'
+		else {//æœ€é•¿èƒ½å¤Ÿå­˜å‚¨lengthä¸ª'a'
 			cout << m_char;
 		}
 	}

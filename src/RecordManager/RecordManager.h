@@ -1,4 +1,4 @@
-﻿#ifndef __RECORDMANAGER_H__
+#ifndef __RECORDMANAGER_H__
 #define __RECORDMANAGER_H__
 #include "base.h"
 #include "Table.h"

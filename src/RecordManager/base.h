@@ -9,9 +9,9 @@
 #include "buffer.h"
 #include "Table.h"
 
-//enum Type { INT, CHAR, FLOAT };/*Êı¾İÀàĞÍ*/
+//enum Type { INT, CHAR, FLOAT };/*æ•°æ®ç±»å‹*/
 
-//ÓÃÓÚwhereµÄÅĞ¶Ï
+//ç”¨äºwhereçš„åˆ¤æ–­
 typedef enum {
 	LESS,
 	LESS_OR_EQUAL,
@@ -23,17 +23,17 @@ typedef enum {
 
 class SelectCondition {
 public:
-	int attributeIndex;//µ±Ç°Ìõ¼şÕë¶ÔµÚ¼¸¸ö×Ö¶Î£¬Ô¼¶¨´Ó0¿ªÊ¼
+	int attributeIndex;//å½“å‰æ¡ä»¶é’ˆå¯¹ç¬¬å‡ ä¸ªå­—æ®µï¼Œçº¦å®šä»0å¼€å§‹
 	Operator opt;
-	Element value;//¶ÔÓÚ><=²Ù×÷£¬Ö»ĞèÒªÓÃµ½value
+	Element value;//å¯¹äº><=æ“ä½œï¼Œåªéœ€è¦ç”¨åˆ°value
 };
 
-//Ôª×é
+//å…ƒç»„
 class Tuple {
 private:
 	std::vector<Element> data;
 	bool isDeleted_;
-	int index;//µ±Ç°Õâ¸öÔª×é£¬ÔÚ±íÖĞµÄµÚ¼¸ĞĞ£¬´Ó0¿ªÊ¼
+	int index;//å½“å‰è¿™ä¸ªå…ƒç»„ï¼Œåœ¨è¡¨ä¸­çš„ç¬¬å‡ è¡Œï¼Œä»0å¼€å§‹
 
 public:
 	Tuple() : isDeleted_(false) {};
@@ -42,7 +42,7 @@ public:
 		data.resize(elementNum);
 	}
 
-	//¿½±´º¯Êı
+	//æ‹·è´å‡½æ•°
 	Tuple(const Tuple& copytuple) {
 		data = copytuple.data; 
 	//	attr = copytuple.attr; 
@@ -63,11 +63,11 @@ public:
 		return true;
 	}
 
-	//ÊäÈëÔª×é
-	//³õ²½ÉèÏëÊÇÔÚinsert²Ù×÷Ê±°´Ë³ĞòÒ»¸öÒ»¸ö°Ñdataµ¼½øÀ´
+	//è¾“å…¥å…ƒç»„
+	//åˆæ­¥è®¾æƒ³æ˜¯åœ¨insertæ“ä½œæ—¶æŒ‰é¡ºåºä¸€ä¸ªä¸€ä¸ªæŠŠdataå¯¼è¿›æ¥
 	void push_back_Data(const Element& d) { this->data.push_back(d); }
 
-	//´òÓ¡Ò»¸öÔª×æµÄÊı¾İ£¬°´Ë³ĞòÊä³ö£¬ÖĞ¼äµÄ¼ä¸ô»¹Ğèµ÷Õû
+	//æ‰“å°ä¸€ä¸ªå…ƒç¥–çš„æ•°æ®ï¼ŒæŒ‰é¡ºåºè¾“å‡ºï¼Œä¸­é—´çš„é—´éš”è¿˜éœ€è°ƒæ•´
 	void Printdata(const std::vector<int>& width) {
 		int i = 0;
 		for (auto it = data.begin(); it != data.end(); it++, i++) {
@@ -96,7 +96,7 @@ public:
 		}
 	}
 
-	//·µ»ØÊı¾İ
+	//è¿”å›æ•°æ®
 	std::vector<Element> getData() const { return this->data; }
 	bool getIsDeleted() { return isDeleted_; }
 	void setIsDeleted(bool s) { isDeleted_ = s; }
@@ -104,40 +104,40 @@ public:
 	void setIndex(int i) { index = i; }
 };
 
-/*¶¨ÒåÊı¾İ¿â*/
+/*å®šä¹‰æ•°æ®åº“*/
 class DataBase {
 public:
 	std::string dataBaseName;
-	std::vector<Table> tables;//´æ´¢µ±Ç°Êı¾İ¿âÖĞËùÓĞµÄÊı¾İ±í
+	std::vector<Table> tables;//å­˜å‚¨å½“å‰æ•°æ®åº“ä¸­æ‰€æœ‰çš„æ•°æ®è¡¨
 	DataBase(std::string name) :dataBaseName(name) {}
 };
 
-/*¶¨ÒåÊı¾İ±í---²ÉÓÃcatalogÖĞµÄTable¶¨Òå*/
+/*å®šä¹‰æ•°æ®è¡¨---é‡‡ç”¨catalogä¸­çš„Tableå®šä¹‰*/
 /*class Table {
 public:
-	std::string tableName;				//±íÃû
-	std::vector<TableAttr> tableAttrs;	//Ò»¸ö±íÓĞ¶à¸öÊôĞÔ
-	//int attrNum;						//ÊôĞÔÊı
-	int primaryKeyIndex;				//Êı¾İ±íÖĞµÄÖ÷¼ü
-	std::string primaryKey;				//Ö÷¼üÃû×Ö
-	//vector<BlockInfo> data;			//Êı¾İ±íÖĞµÄÊı¾İ
-	int blockNum;						//Õ¼ÓÃµÄblockÊı
-	int recordNum;						//¼ÇÂ¼ÌõÊı
-	int recordLength;					//Ã¿Ìõ¼ÇÂ¼µÄ³¤¶È
+	std::string tableName;				//è¡¨å
+	std::vector<TableAttr> tableAttrs;	//ä¸€ä¸ªè¡¨æœ‰å¤šä¸ªå±æ€§
+	//int attrNum;						//å±æ€§æ•°
+	int primaryKeyIndex;				//æ•°æ®è¡¨ä¸­çš„ä¸»é”®
+	std::string primaryKey;				//ä¸»é”®åå­—
+	//vector<BlockInfo> data;			//æ•°æ®è¡¨ä¸­çš„æ•°æ®
+	int blockNum;						//å ç”¨çš„blockæ•°
+	int recordNum;						//è®°å½•æ¡æ•°
+	int recordLength;					//æ¯æ¡è®°å½•çš„é•¿åº¦
 
 	Table() : blockNum(0), recordNum(0), recordLength(0) {}
 	Table(std::string name, std::string primaryKey) : tableName(name), primaryKey(primaryKey) {}
 	~Table() {}
 };*/
 
-/*¶¨Òå±íÖĞÄ³Ò»¸öÊôĞÔ---²ÉÓÃcatalogÖĞµÄTable¶¨Òå*/
+/*å®šä¹‰è¡¨ä¸­æŸä¸€ä¸ªå±æ€§---é‡‡ç”¨catalogä¸­çš„Tableå®šä¹‰*/
 /*class TableAttr {
 public:
-	std::string attrName;//ÊôĞÔÃû
-	Type type;//ÊôĞÔÀàĞÍ
+	std::string attrName;//å±æ€§å
+	Type type;//å±æ€§ç±»å‹
 };*/
 
-/*BlockInfoÓëFileInfoÎªÀ´×ÔbufferµÄÀà¶¨Òå*/
+/*BlockInfoä¸FileInfoä¸ºæ¥è‡ªbufferçš„ç±»å®šä¹‰*/
 
 /*class FileInfo {
 public:

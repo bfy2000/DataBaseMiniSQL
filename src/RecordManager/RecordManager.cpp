@@ -3,19 +3,19 @@
 extern CatalogManager catalogManager;
 
 /**
-	 ´ÓÂß¼­ÉÏ¡ª¡ª
-	 1¡¢recordMangerµÄ²Ù×÷Ó¦¸ÃÊÇ½¨Á¢ÔÚ"±í"Õâ¸ö¸ÅÄîÉÏµÄ¡£Ò²¾ÍÊÇ¶Ô±í½øĞĞ²Ù×÷¡£
-	 2¡¢¸ù¾İword°æ±¾µÄ¡¶Record ManagerÄ£¿éÉè¼ÆËµÃ÷¡·ÀïÃæ£¬
-	    ÊÇÓÉcatalog manger¡°ÌáÈ¡±íÃû¼°¼ÇÂ¼£¬¸ù¾İĞÅÏ¢¼ÆËã²åÈë¼ÇÂ¼µÄ¿éºÅ£¬²¢µ÷ÓÃBuffer Manager µÄ¹¦ÄÜ¡±¡£
-	 3¡¢¶øcatalog managerÀïÃæÒÑ¾­°Ñ´Ó±íÃûµÃµ½±íµÄº¯ÊıĞ´ºÃÁË£¬Ö±½Óµ÷ÓÃ¾ÍĞĞÅĞ¶Ï²»Îª¿Õ¼´¿É¡£²»ĞèÒª¶îÍâÅĞ¶Ï±íµÄ´æÔÚÓë·ñ¡£
-	 4¡¢ËùÒÔÎÒÈÏÎªÓ¦¸Ã°ÑbufferÀïÃæµÄFileInfo×÷ÎªTableÀàÀïÃæµÄÒ»¸ö³ÉÔ±£¬ÒªÓÃµ½Êı¾İµÄÊ±ºòÔÙÈ¥´ÓbufferÀïÃæµÃµ½¡£
-	 5¡¢¸ĞĞ»bufferÍ¬Ñ§£¬ÈÃÎÒÄÜÖ±½Ó´ÓtableNameºÍindexÖĞ¾ÍµÃµ½ÎÒËùĞèÒªµÄÊı¾İ¡£
+	 ä»é€»è¾‘ä¸Šâ€”â€”
+	 1ã€recordMangerçš„æ“ä½œåº”è¯¥æ˜¯å»ºç«‹åœ¨"è¡¨"è¿™ä¸ªæ¦‚å¿µä¸Šçš„ã€‚ä¹Ÿå°±æ˜¯å¯¹è¡¨è¿›è¡Œæ“ä½œã€‚
+	 2ã€æ ¹æ®wordç‰ˆæœ¬çš„ã€ŠRecord Manageræ¨¡å—è®¾è®¡è¯´æ˜ã€‹é‡Œé¢ï¼Œ
+	    æ˜¯ç”±catalog mangerâ€œæå–è¡¨ååŠè®°å½•ï¼Œæ ¹æ®ä¿¡æ¯è®¡ç®—æ’å…¥è®°å½•çš„å—å·ï¼Œå¹¶è°ƒç”¨Buffer Manager çš„åŠŸèƒ½â€ã€‚
+	 3ã€è€Œcatalog manageré‡Œé¢å·²ç»æŠŠä»è¡¨åå¾—åˆ°è¡¨çš„å‡½æ•°å†™å¥½äº†ï¼Œç›´æ¥è°ƒç”¨å°±è¡Œåˆ¤æ–­ä¸ä¸ºç©ºå³å¯ã€‚ä¸éœ€è¦é¢å¤–åˆ¤æ–­è¡¨çš„å­˜åœ¨ä¸å¦ã€‚
+	 4ã€æ‰€ä»¥æˆ‘è®¤ä¸ºåº”è¯¥æŠŠbufferé‡Œé¢çš„FileInfoä½œä¸ºTableç±»é‡Œé¢çš„ä¸€ä¸ªæˆå‘˜ï¼Œè¦ç”¨åˆ°æ•°æ®çš„æ—¶å€™å†å»ä»bufferé‡Œé¢å¾—åˆ°ã€‚
+	 5ã€æ„Ÿè°¢bufferåŒå­¦ï¼Œè®©æˆ‘èƒ½ç›´æ¥ä»tableNameå’Œindexä¸­å°±å¾—åˆ°æˆ‘æ‰€éœ€è¦çš„æ•°æ®ã€‚
  */
 
 
-//TODO:²éÑ¯Ê±¿ÉÄÜĞèÒª¿¼ÂÇË÷Òı£¬µ«ÉĞÎ´ÖªµÀ½Ó¿Ú
+//TODO:æŸ¥è¯¢æ—¶å¯èƒ½éœ€è¦è€ƒè™‘ç´¢å¼•ï¼Œä½†å°šæœªçŸ¥é“æ¥å£
 
-//ÊÇ·ñÓ¦µ±ÓëbufferÖĞµÄfilelistÁªÏµÆğÀ´
+//æ˜¯å¦åº”å½“ä¸bufferä¸­çš„filelistè”ç³»èµ·æ¥
 //Table* RecordManager::isExistTable(string tableName)
 //{
 //	int n = tables.size();
@@ -27,11 +27,11 @@ extern CatalogManager catalogManager;
 //	return NULL;
 //}
 
-////TODO:createTable Óë dropTableÔÚcatalogManagerÖĞÒ²´æÔÚ£¬¶şÕß¿ÉÄÜĞèÒª×öÒ»¸öÍ³Ò»»òÖ±½Ó²ÉÓÃCatalogManagerÖĞµÄº¯Êı
+////TODO:createTable ä¸ dropTableåœ¨catalogManagerä¸­ä¹Ÿå­˜åœ¨ï¼ŒäºŒè€…å¯èƒ½éœ€è¦åšä¸€ä¸ªç»Ÿä¸€æˆ–ç›´æ¥é‡‡ç”¨CatalogManagerä¸­çš„å‡½æ•°
 //bool RecordManager::createTable(string tableName, string primaryKey, vector<Attribute> attributeVector)
 //{
 //	if (isExistTable(tableName) != NULL) {
-//		cerr << "Í¬ÃûµÄ±í¸ñÒÑ¾­´æÔÚ" << endl;
+//		cerr << "åŒåçš„è¡¨æ ¼å·²ç»å­˜åœ¨" << endl;
 //		return false;
 //	}
 //	Table table(tableName, primaryKey, attributeVector);
@@ -43,7 +43,7 @@ extern CatalogManager catalogManager;
 //{
 //	Table* table = isExistTable(tableName);
 //	if (table == NULL) {
-//		cerr << "²»´æÔÚ±í¸ñ£º" << tableName << endl;
+//		cerr << "ä¸å­˜åœ¨è¡¨æ ¼ï¼š" << tableName << endl;
 //		return false;
 //	}
 //	for (auto it = this->tables.begin(); it != this->tables.end(); ++it) {
@@ -55,12 +55,12 @@ extern CatalogManager catalogManager;
 //	return false;
 //}
 
-//insertValue·µ»ØÖµÎªfalse±íÊ¾³ö´í£¬·ñÔòÎªÕıÈ·Ö´ĞĞ
+//insertValueè¿”å›å€¼ä¸ºfalseè¡¨ç¤ºå‡ºé”™ï¼Œå¦åˆ™ä¸ºæ­£ç¡®æ‰§è¡Œ
 bool RecordManager::insertValue(string tableName, Tuple tuple)
 {
-	Table table = catalogManager.get_table(tableName);//½¨Òé°ÑÕâ¸öº¯ÊıµÄ·µ»ØÖµ¶¨Òå³É·µ»ØÖ¸Õë
-	//if (table == NULL) {// ÕâÀïÎŞ·¨ÅĞ¶ÏÊÇ·ñÓĞÕâ¸ö±í
-	//	cerr << "Ã»ÓĞÕâ¸ö±í" << endl;
+	Table table = catalogManager.get_table(tableName);//å»ºè®®æŠŠè¿™ä¸ªå‡½æ•°çš„è¿”å›å€¼å®šä¹‰æˆè¿”å›æŒ‡é’ˆ
+	//if (table == NULL) {// è¿™é‡Œæ— æ³•åˆ¤æ–­æ˜¯å¦æœ‰è¿™ä¸ªè¡¨
+	//	cerr << "æ²¡æœ‰è¿™ä¸ªè¡¨" << endl;
 	//	return false;
 	//}
 	if (isMatchTheAttribute(&table, &tuple) == false) {
@@ -78,11 +78,11 @@ bool RecordManager::insertValue(string tableName, Tuple tuple)
 	bool writeResult = writeToIndex(table.tableName, table.rowNum, tmpChar, table.rowLength, "db_name?", 0);
 	free(tmpChar);
 	if (writeResult == false) {
-		cerr << "Ğ´ÈëbufferÊ§°Ü" << endl;
+		cerr << "å†™å…¥bufferå¤±è´¥" << endl;
 		return false;
 	}
 	else {
-		cout << "Ğ´Èëbuffer³É¹¦" << endl;
+		cout << "å†™å…¥bufferæˆåŠŸ" << endl;
 		table.rowNum += 1;
 	}
 	return true;
@@ -110,7 +110,7 @@ bool RecordManager::isConflictTheUnique(Table* table, Tuple* tuple)
 		Tuple tmpTuple = getTupleByIndex(table, i);
 		if (isConflict(&tmpTuple, tuple, table->primaryKeyIndex) == true) {
 			cerr << "primary key conflict" << endl;
-			return true;//ÈÏÎª·¢ÉúÁË³åÍ»
+			return true;//è®¤ä¸ºå‘ç”Ÿäº†å†²çª
 		}
 	}
 	return false;
@@ -118,7 +118,7 @@ bool RecordManager::isConflictTheUnique(Table* table, Tuple* tuple)
 
 bool RecordManager::isConflict(Tuple* tuple1, Tuple* tuple2, int index)
 {
-	if (tuple1->getIsDeleted() || tuple2->getIsDeleted()) {//ÈôÆäÖĞÒ»¸öÔª×é±»É¾³ı£¬Ôò²»¿ÉÄÜ·¢Éú³åÍ»
+	if (tuple1->getIsDeleted() || tuple2->getIsDeleted()) {//è‹¥å…¶ä¸­ä¸€ä¸ªå…ƒç»„è¢«åˆ é™¤ï¼Œåˆ™ä¸å¯èƒ½å‘ç”Ÿå†²çª
 		return false;
 	}
 	return tuple1->getData()[index] == tuple2->getData[index];
@@ -133,20 +133,20 @@ Tuple RecordManager::getTupleByIndex(Table* table, int index)
 		return tuple;
 	}
 	int tmpLength = table->rowLength;
-	// ²»ÖªµÀdb_nameÊÇÊ²Ã´¶«Î÷
+	// ä¸çŸ¥é“db_nameæ˜¯ä»€ä¹ˆä¸œè¥¿
 	readData(table->tableName, "db_name?", index * table->rowLength, tmpData, tmpLength, 0);
 	Tuple tmpTuple = charToTuple(table, tmpData);
 	free(tmpData);
 	return tuple;
 }
 
-//½öÔÊĞíµ¥¸öÌõ¼ş£¬»òÕß¶à¸öÌõ¼şµÄandÀàĞÍµÄ²éÑ¯²Ù×÷£¨orÊÇ²»ĞĞµÄ£©
+//ä»…å…è®¸å•ä¸ªæ¡ä»¶ï¼Œæˆ–è€…å¤šä¸ªæ¡ä»¶çš„andç±»å‹çš„æŸ¥è¯¢æ“ä½œï¼ˆoræ˜¯ä¸è¡Œçš„ï¼‰
 vector<Tuple> RecordManager::searchQuery(string tableName, vector<SelectCondition> selectConditions)
 {
 	vector<Tuple> ans;
-	Table table = catalogManager.get_table(tableName);//½¨Òé°ÑÕâ¸öº¯ÊıµÄ·µ»ØÖµ¶¨Òå³É·µ»ØÖ¸Õë
-	//if (table == NULL) {// ÕâÀïÎŞ·¨ÅĞ¶ÏÊÇ·ñÓĞÕâ¸ö±í
-	//	cerr << "Ã»ÓĞÕâ¸ö±í" << endl;
+	Table table = catalogManager.get_table(tableName);//å»ºè®®æŠŠè¿™ä¸ªå‡½æ•°çš„è¿”å›å€¼å®šä¹‰æˆè¿”å›æŒ‡é’ˆ
+	//if (table == NULL) {// è¿™é‡Œæ— æ³•åˆ¤æ–­æ˜¯å¦æœ‰è¿™ä¸ªè¡¨
+	//	cerr << "æ²¡æœ‰è¿™ä¸ªè¡¨" << endl;
 	//	return ans;
 	//}
 	for (int i = 0; i < table.rowNum; i++) {
@@ -169,9 +169,9 @@ vector<Tuple> RecordManager::searchQuery(string tableName, vector<SelectConditio
 vector<Tuple> RecordManager::searchQuery(string tableName)
 {
 	vector<Tuple> ans;
-	Table table = catalogManager.get_table(tableName);//½¨Òé°ÑÕâ¸öº¯ÊıµÄ·µ»ØÖµ¶¨Òå³É·µ»ØÖ¸Õë
-	//if (table == NULL) {// ÕâÀïÎŞ·¨ÅĞ¶ÏÊÇ·ñÓĞÕâ¸ö±í
-	//	cerr << "Ã»ÓĞÕâ¸ö±í" << endl;
+	Table table = catalogManager.get_table(tableName);//å»ºè®®æŠŠè¿™ä¸ªå‡½æ•°çš„è¿”å›å€¼å®šä¹‰æˆè¿”å›æŒ‡é’ˆ
+	//if (table == NULL) {// è¿™é‡Œæ— æ³•åˆ¤æ–­æ˜¯å¦æœ‰è¿™ä¸ªè¡¨
+	//	cerr << "æ²¡æœ‰è¿™ä¸ªè¡¨" << endl;
 	//	return ans;
 	//}
 	for (int i = 0; i < table.rowNum; i++) {
@@ -212,8 +212,8 @@ bool RecordManager::judgeCondition(Tuple tuple, SelectCondition condition)
 			return true;
 	}
 
-	//É¾³ıËùÓĞµÄÇø¼ä±È½Ï£¬ĞèÒªÆäËûÄ£¿é£¬°ÑÀàËÆÓÚÇø¼äµÄ²Ù×÷½âÎöÎªÁ½¸ö±È½Ï²Ù×÷£¬
-	//±ÈÈçand µÄ»°£¬±ä³ÉÁ½¸ö·ûºÅ²Ù×÷¡£
+	//åˆ é™¤æ‰€æœ‰çš„åŒºé—´æ¯”è¾ƒï¼Œéœ€è¦å…¶ä»–æ¨¡å—ï¼ŒæŠŠç±»ä¼¼äºåŒºé—´çš„æ“ä½œè§£æä¸ºä¸¤ä¸ªæ¯”è¾ƒæ“ä½œï¼Œ
+	//æ¯”å¦‚and çš„è¯ï¼Œå˜æˆä¸¤ä¸ªç¬¦å·æ“ä½œã€‚
 	//else if (condition.opt == INTERVAL) {
 	//	if (condition.value.first <= tuple.data[condition.attributeIndex] && tuple.data[condition.attributeIndex] < condition.value.second)
 	//		return true;
@@ -225,9 +225,9 @@ bool RecordManager::judgeCondition(Tuple tuple, SelectCondition condition)
 
 int RecordManager::deleteTuple(string tableName, vector<SelectCondition> selectConditions)
 {
-	Table table = catalogManager.get_table(tableName);//½¨Òé°ÑÕâ¸öº¯ÊıµÄ·µ»ØÖµ¶¨Òå³É·µ»ØÖ¸Õë
-	//if (table == NULL) {// ÕâÀïÎŞ·¨ÅĞ¶ÏÊÇ·ñÓĞÕâ¸ö±í
-	//	cerr << "Ã»ÓĞÕâ¸ö±í" << endl;
+	Table table = catalogManager.get_table(tableName);//å»ºè®®æŠŠè¿™ä¸ªå‡½æ•°çš„è¿”å›å€¼å®šä¹‰æˆè¿”å›æŒ‡é’ˆ
+	//if (table == NULL) {// è¿™é‡Œæ— æ³•åˆ¤æ–­æ˜¯å¦æœ‰è¿™ä¸ªè¡¨
+	//	cerr << "æ²¡æœ‰è¿™ä¸ªè¡¨" << endl;
 	//	return ans;
 	//}
 	vector<Tuple> searchResult = searchQuery(tableName, selectConditions);
@@ -240,22 +240,22 @@ int RecordManager::deleteTuple(string tableName, vector<SelectCondition> selectC
 		Tuple tuple = searchResult[i];
 		char* tmpChar = (char*)malloc(sizeof(char));
 		*tmpChar = '0';
-		bool writeResult = writeToIndex(tableName, tuple.getIndex(), tmpChar, 1, "db_name?", 0);//ĞŞ¸Ä×îÇ°ÃæµÄÉ¾³ı±ê¼Ç
+		bool writeResult = writeToIndex(tableName, tuple.getIndex(), tmpChar, 1, "db_name?", 0);//ä¿®æ”¹æœ€å‰é¢çš„åˆ é™¤æ ‡è®°
 		free(tmpChar);
 		if (writeResult == false) {
 			cerr << "write to buffer error" << endl;
 			return -1;
 		}
-		//table.rowNum -= 1;//µ«ÊÇ²»ĞŞ¸ÄÊı¾İĞĞÊı±ê¼Ç
+		//table.rowNum -= 1;//ä½†æ˜¯ä¸ä¿®æ”¹æ•°æ®è¡Œæ•°æ ‡è®°
 	}
 	return deleteNum;
 }
 
 int RecordManager::deleteTuple(string tableName)
 {
-	Table table = catalogManager.get_table(tableName);//½¨Òé°ÑÕâ¸öº¯ÊıµÄ·µ»ØÖµ¶¨Òå³É·µ»ØÖ¸Õë
-	//if (table == NULL) {// ÕâÀïÎŞ·¨ÅĞ¶ÏÊÇ·ñÓĞÕâ¸ö±í
-	//	cerr << "Ã»ÓĞÕâ¸ö±í" << endl;
+	Table table = catalogManager.get_table(tableName);//å»ºè®®æŠŠè¿™ä¸ªå‡½æ•°çš„è¿”å›å€¼å®šä¹‰æˆè¿”å›æŒ‡é’ˆ
+	//if (table == NULL) {// è¿™é‡Œæ— æ³•åˆ¤æ–­æ˜¯å¦æœ‰è¿™ä¸ªè¡¨
+	//	cerr << "æ²¡æœ‰è¿™ä¸ªè¡¨" << endl;
 	//	return ans;
 	//}
 	vector<Tuple> searchResult = searchQuery(tableName);
@@ -268,13 +268,13 @@ int RecordManager::deleteTuple(string tableName)
 		Tuple tuple = searchResult[i];
 		char* tmpChar = (char*)malloc(sizeof(char));
 		*tmpChar = '0';
-		bool writeResult = writeToIndex(tableName, tuple.getIndex(), tmpChar, 1, "db_name?", 0);//ĞŞ¸Ä×îÇ°ÃæµÄÉ¾³ı±ê¼Ç
+		bool writeResult = writeToIndex(tableName, tuple.getIndex(), tmpChar, 1, "db_name?", 0);//ä¿®æ”¹æœ€å‰é¢çš„åˆ é™¤æ ‡è®°
 		free(tmpChar);
 		if (writeResult == false) {
 			cerr << "write to buffer error" << endl;
 			return -1;
 		}
-		//table.rowNum -= 1;//µ«ÊÇ²»ĞŞ¸ÄÊı¾İĞĞÊı±ê¼Ç
+		//table.rowNum -= 1;//ä½†æ˜¯ä¸ä¿®æ”¹æ•°æ®è¡Œæ•°æ ‡è®°
 	}
 	return deleteNum;
 }

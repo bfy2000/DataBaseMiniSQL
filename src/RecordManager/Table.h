@@ -16,12 +16,12 @@
 		vector<Attribute> attributeVector;
 		vector<Index>	indexVector;
 		//vector<Tuple>   tuples;
-		//char* data; // ÓÃÀ´±£´æËùÓĞµÄÊı¾İ
+		//char* data; // ç”¨æ¥ä¿å­˜æ‰€æœ‰çš„æ•°æ®
 		//FileInfo file;
 		int indexNum;
 		int attributeNum;
-		int rowNum; // ±íÊ¾×Ü¹²ÓĞ¶àÉÙÌõÊı¾İÓĞĞ§
-		int rowLength; // ±íÊ¾Ã¿ÌõÊı¾İµÄ³¤¶ÈÊÇ¶àÉÙ×Ö½Ú
+		int rowNum; // è¡¨ç¤ºæ€»å…±æœ‰å¤šå°‘æ¡æ•°æ®æœ‰æ•ˆ
+		int rowLength; // è¡¨ç¤ºæ¯æ¡æ•°æ®çš„é•¿åº¦æ˜¯å¤šå°‘å­—èŠ‚
 		Table() { ; }
 		Table(string tableName, string primaryKey, vector<Attribute> attributeVector) {
 			this->tableName = tableName;
@@ -35,8 +35,8 @@
 
 			this->rowNum = 0;
 
-			this->rowLength = sizeof(char);//µÚ0¸ö×Ö½ÚÓÃÀ´¼ÇÂ¼Êı¾İÊÇ·ñÉ¾³ı
-			this->rowLength += sizeof(int);//µÚ1~4¸ö×Ö½ÚÓÃÀ´¼ÇÂ¼Êı¾İÊÇ·ñÉ¾³ı
+			this->rowLength = sizeof(char);//ç¬¬0ä¸ªå­—èŠ‚ç”¨æ¥è®°å½•æ•°æ®æ˜¯å¦åˆ é™¤
+			this->rowLength += sizeof(int);//ç¬¬1~4ä¸ªå­—èŠ‚ç”¨æ¥è®°å½•æ•°æ®æ˜¯å¦åˆ é™¤
 			for (int i = 0; i < attributeVector.size(); i++) {
 				if (attributeVector[i].attributeName == primaryKey) {
 					attributeVector[i].isUnique = true;
