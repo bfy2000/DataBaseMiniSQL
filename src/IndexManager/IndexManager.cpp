@@ -112,7 +112,7 @@ bool IndexManager::find_element(const std::string &db_name, const std::string &t
 	std::string filename = table_name;
 	if (!is_tree_already_exist(filename, type))
 	{
-		//´ÓÓ²ÅÌÖÐ¼ÓÔØ
+		//ä»Žç¡¬ç›˜ä¸­åŠ è½½
 		readintree(db_name, table_name, type);
 	}
 	if (type == 0) {
@@ -138,7 +138,7 @@ bool IndexManager::insert_index(const std::string &db_name, const std::string &t
 	std::string filename = table_name;
 	if (!is_tree_already_exist(filename, type))
 	{
-		//´ÓÓ²ÅÌÖÐ¼ÓÔØ
+		//ä»Žç¡¬ç›˜ä¸­åŠ è½½
 		readintree(db_name, table_name, type);
 	}
 	if (type == 0) {
@@ -159,7 +159,7 @@ bool IndexManager::delete_index(const std::string &db_name, const std::string &t
 	std::string filename = table_name;
 	if (!is_tree_already_exist(filename, type))
 	{
-		//´ÓÓ²ÅÌÖÐ¼ÓÔØ
+		//ä»Žç¡¬ç›˜ä¸­åŠ è½½
 		readintree(db_name, table_name, type);
 	}
 	if (type == 0) {
@@ -185,7 +185,7 @@ void IndexManager::drop_index(const std::string &table_name, const std::string &
 		{
 			float_index.erase(filename);
 		}
-		// ×Ö·û´®
+		// å­—ç¬¦ä¸²
 		else if (type > 0)
 		{
 			string_index.erase(filename);

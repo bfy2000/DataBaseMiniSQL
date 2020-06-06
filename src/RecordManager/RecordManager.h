@@ -1,9 +1,9 @@
 #ifndef __RECORDMANAGER_H__
 #define __RECORDMANAGER_H__
-#include "CatalogManager.h"
-#include "FieldType.h"
+#include "../catalog_manager/CatalogManager.h"
+#include "../catalog_manager/FieldType.h"
 #include "Table.h"
-#include "attribute.h"
+#include "../catalog_manager/attribute.h"
 #include "base.h"
 
 class RecordManager {
@@ -14,6 +14,7 @@ class RecordManager {
   bool insertValue(string tableName, Tuple tuple);
   bool insertValue(string tableName,
                    vector<pair<FieldType, string>> tupleString);
+  
   int deleteTuple(string tableName, vector<SelectCondition> selectConditions);
   int deleteTuple(string tableName);
   vector<Tuple> searchQuery(string tableName,

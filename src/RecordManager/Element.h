@@ -2,9 +2,9 @@
 #define __ELEMENT_H__
 #include <string>
 
-#include "FieldType.h"
+#include "../catalog_manager/FieldType.h"
 
-/*定义了一个元素，包含其类型以及数据的存放，通过元算符重载设计实现不同的比较符运算*/
+//定义了一个元素，包含其类型以及数据的存放，通过元算符重载设计实现不同的比较符运算
 class Element {
  public:
   NumType type;

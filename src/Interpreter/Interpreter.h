@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 #include "../API/API.h"
+//#include "../RecordManager/RecordManager.h"
+
 using namespace std;
 
 enum class State {
@@ -107,10 +109,7 @@ private:
 	string tmp_table_name;
 	string tmp_attr_name;
 
-	InsertQuery insert_values_query;
-	CreateTable create_table;
-	SelectQuery select_query;
-	DeleteQuery delete_query;
+	API api;
 };
 
 

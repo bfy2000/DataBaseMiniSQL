@@ -8,24 +8,15 @@
 
 #include "Element.h"
 #include "Table.h"
-#include "buffer.h"
-
-// enum Type { INT, CHAR, FLOAT };/*数据类型*/
+#include "../buffer/buffer.h"
+#include "../Public/DataType.h"
 
 //用于where的判断
-typedef enum {
-  LESS,
-  LESS_OR_EQUAL,
-  EQUAL,
-  GREATER_OR_EQUAL,
-  GREATER,
-  NOT_EQUAL
-} Operator;
 
 class SelectCondition {
  public:
   int attributeIndex;  //当前条件针对第几个字段，约定从0开始
-  Operator opt;
+  CMP opt;
   Element value;  //对于><=操作，只需要用到value
 };
 

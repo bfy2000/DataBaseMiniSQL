@@ -157,7 +157,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		case State::DELETE_FROM: {
 			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
 				state_code = State::DELETE_TABLE_PARSED;
-				delete_query.SetDeleteTable(next_word);
+				api.delete_query.SetDeleteTable(next_word);
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid delete table: " + next_word);
@@ -167,7 +167,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::DELETE_TABLE_PARSED: {
 			if (next_word == ";") {
-				delete_query.Query();
+				api.delete_query.Query();
 				state_code = State::IDLE;
 			}
 			else if (next_word == "WHERE" || next_word == "where") {
@@ -175,63 +175,63 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid keyword: " + next_word);
-				delete_query.Clear();
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::DELETE_WHERE_PARSED: {
 			if (is_expr(next_word)) {
-				delete_query.SetExpr1(next_word);
+				api.delete_query.SetExpr1(next_word);
 				state_code = State::DELETE_EXPR1_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid expression: " + next_word);
-				delete_query.Clear();
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::DELETE_EXPR1_PARSED: {
 			if (next_word == "=") {
-				delete_query.SetCmp(EQUAL);
+				api.delete_query.SetCmp(EQUAL);
 				state_code = State::DELETE_CMP_PARSED;
 			}
 			else if (next_word == "!=") {
-				delete_query.SetCmp(NOT_EQUAL);
+				api.delete_query.SetCmp(NOT_EQUAL);
 				state_code = State::DELETE_CMP_PARSED;
 			}
 			else if (next_word == ">") {
-				delete_query.SetCmp(GREATER);
+				api.delete_query.SetCmp(GREATER);
 				state_code = State::DELETE_CMP_PARSED;
 			}
 			else if (next_word == "<") {
-				delete_query.SetCmp(LESS);
+				api.delete_query.SetCmp(LESS);
 				state_code = State::DELETE_CMP_PARSED;
 			}
 			else if (next_word == ">=") {
-				delete_query.SetCmp(GREATER_EQUAL);
+				api.delete_query.SetCmp(GREATER_EQUAL);
 				state_code = State::DELETE_CMP_PARSED;
 			}
 			else if (next_word == "<=") {
-				delete_query.SetCmp(LESS_EQUAL);
+				api.delete_query.SetCmp(LESS_EQUAL);
 				state_code = State::DELETE_CMP_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid comparison expression: " + next_word);
-				delete_query.Clear();
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::DELETE_CMP_PARSED: {
 			if (is_expr(next_word)) {
-				delete_query.SetWhereExpr(next_word);
+				api.delete_query.SetWhereExpr(next_word);
 				state_code = State::DELETE_EXPR2_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid expression: " + next_word);
-				delete_query.Clear();
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -241,24 +241,24 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::DELETE_AND_PARSED;
 			}
 			else if (next_word == ";") {
-				delete_query.Query();
+				api.delete_query.Query();
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid argument: " + next_word);
-				delete_query.Clear();
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::DELETE_AND_PARSED: {
 			if (is_expr(next_word)) {
-				delete_query.SetExpr1(next_word);
+				api.delete_query.SetExpr1(next_word);
 				state_code = State::SELECT_EXPR1_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid expression: " + next_word);
-				delete_query.Clear();
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -313,7 +313,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::DROP_INDEX_PARSED: {
 			if (next_word == ";") {
-				DropIndex(tmp_drop_obj);
+				api.DropIndex(tmp_drop_obj);
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
@@ -335,7 +335,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::DROP_TABLE_PARSED: {
 			if (next_word == ";") {
-				DropTable(tmp_drop_obj);
+				api.DropTable(tmp_drop_obj);
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
@@ -390,7 +390,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				return;
 			}
 			else if (next_word != "") {
-				insert_values_query.Insert(next_word);
+				api.insert_values_query.Insert(next_word);
 				state_code = State::INSERT_VALUE_RECEIVED;
 			}
 		} break;
@@ -403,7 +403,7 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid symbol: " + next_word);
-				insert_values_query.Clear();
+				api.insert_values_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -411,24 +411,24 @@ void Interpreter::ReadInput(istringstream &input) {
 		case State::INSERT_COMMA: {
 			if (next_word == ")" || next_word == ";") {
 				PromptErr("[Invalid Argument] expect another insert value");
-				insert_values_query.Clear();
+				api.insert_values_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 			else if (next_word != "") {
-				insert_values_query.Insert(next_word);
+				api.insert_values_query.Insert(next_word);
 				state_code = State::INSERT_VALUE_RECEIVED;
 			}
 		} break;
 		case State::INSERT_RIGHT_BRACKET: {
 			if (next_word == ";") {
-				insert_values_query.Query();
-				insert_values_query.Clear();
+				api.insert_values_query.Query(api.record_manager);
+				api.insert_values_query.Clear();
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid symbol, expect ;");
-				insert_values_query.Clear();
+				api.insert_values_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -508,7 +508,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::CREATE_INDEX_RIGHT_BRACKET: {
 			if (next_word == ";") {
-				CreateIndex(tmp_index_name, tmp_table_name, tmp_attr_name);
+				api.CreateIndex(tmp_index_name, tmp_table_name, tmp_attr_name);
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
@@ -519,7 +519,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::CREATE_TABLE: {
 			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
-				create_table.SetTableName(next_word);
+				api.create_table.SetTableName(next_word);
 				state_code = State::CREATE_TABLE_PARSED;
 			}
 			else if (next_word != "") {
@@ -542,7 +542,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_TABLE_PRIMARY;
 			}
 			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
-				create_table.InsertAttr(next_word);
+				api.create_table.InsertAttr(next_word);
 				state_code = State::CREATE_ATTR_PARSED;
 			}
 			else if (next_word != "") {
@@ -556,7 +556,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_PRIMARY_KEY;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] expect KEY");
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -566,7 +566,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_PRIMARY_LEFT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] expect (");
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -574,12 +574,12 @@ void Interpreter::ReadInput(istringstream &input) {
 
 		case State::CREATE_PRIMARY_LEFT_BRACKET: {
 			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
-				create_table.InsertPrimary(next_word);
+				api.create_table.InsertPrimary(next_word);
 				state_code = State::PRIMARY_ATTR_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid attribute name: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -589,7 +589,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_PRIMARY_RIGHT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] expect )");
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -601,7 +601,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] expect ) or ,");
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -611,12 +611,12 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_TABLE_PRIMARY;
 			}
 			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
-				create_table.InsertAttr(next_word);
+				api.create_table.InsertAttr(next_word);
 				state_code = State::CREATE_ATTR_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid keyword: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -624,26 +624,26 @@ void Interpreter::ReadInput(istringstream &input) {
 		case State::CREATE_ATTR_PARSED: {
 			if (next_word == "INT" || next_word == "int") {
 				state_code = State::CREATE_INT_PARSED;
-				create_table.InsertType(INT);
+				api.create_table.InsertType(INT);
 			}
 			else if (next_word == "FLOAT" || next_word == "float") {
 				state_code = State::CREATE_FLOAT_PARSED;
-				create_table.InsertType(FLOAT);
+				api.create_table.InsertType(FLOAT);
 			}
 			else if (next_word == "CHAR" || next_word == "char") {
 				state_code = State::CREATE_CHAR_PARSED;
-				create_table.InsertType(STRING);
+				api.create_table.InsertType(CHAR);
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid attribute type: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::CREATE_INT_PARSED: {
 			if (next_word == "UNIQUE" || next_word == "unique") {
-				create_table.InsertUnique();
+				api.create_table.InsertUnique();
 				state_code = State::UNIQUE_PARSED;
 			}
 			else if (next_word == ",")
@@ -652,7 +652,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid key word: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -662,14 +662,14 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CHAR_LEFT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid key word: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::CREATE_FLOAT_PARSED: {
 			if (next_word == "UNIQUE" || next_word == "unique") {
-				create_table.InsertUnique();
+				api.create_table.InsertUnique();
 				state_code = State::UNIQUE_PARSED;
 			}
 			else if (next_word == ",")
@@ -678,7 +678,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid key word: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -686,12 +686,12 @@ void Interpreter::ReadInput(istringstream &input) {
 
 		case State::CHAR_LEFT_BRACKET: {
 			if (regex_match(next_word, regex("^[0-9]*$"))) {
-				create_table.InsertSize(stoi(next_word));
+				api.create_table.InsertSize(stoi(next_word));
 				state_code = State::CHAR_BIT_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid char size: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -701,14 +701,14 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CHAR_RIGHT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid keyword: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::CHAR_RIGHT_BRACKET: {
 			if (next_word == "UNIQUE" || next_word == "unique") {
-				create_table.InsertUnique();
+				api.create_table.InsertUnique();
 				state_code = State::UNIQUE_PARSED;
 			}
 			else if (next_word == ",")
@@ -717,7 +717,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid key word: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -729,35 +729,35 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::CREATE_TABLE_RIGHT_BRACKET;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid key word: " + next_word);
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::CREATE_TABLE_RIGHT_BRACKET: {
 			if (next_word == ";") {
-				create_table.Query();
+				api.create_table.Query();
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] expect ;");
-				create_table.Clear();
+				api.create_table.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::SELECT: {
 			if (next_word == "*") {
-				select_query.SetSelectAll();
+				api.select_query.SetSelectAll();
 				state_code = State::SELECT_ALL;
 			}
 			else if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
-				select_query.Insert(next_word);
+				api.select_query.Insert(next_word);
 				state_code = State::SELECT_ATTR;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid attribute name: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -767,7 +767,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::SELECT_FROM;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] expect FROM");
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -779,7 +779,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::SELECT_FROM;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid keyword: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -789,26 +789,26 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::SELECT_TABLE_PARSED;
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid table name: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::SELECT_ATTR_COMMA: {
 			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))) {
-				select_query.Insert(next_word);
+				api.select_query.Insert(next_word);
 				state_code = State::SELECT_ATTR;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid attribute name: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::SELECT_TABLE_PARSED: {
 			if (next_word == ";") {
-				select_query.Query();
+				api.select_query.Query(api.record_manager);
 				state_code = State::IDLE;
 			}
 			else if (next_word == "WHERE" || next_word == "where") {
@@ -816,63 +816,63 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid keyword: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::SELECT_WHERE_PARSED: {
 			if (is_expr(next_word)) {
-				select_query.SetExpr1(next_word);
+				api.select_query.SetExpr1(next_word);
 				state_code = State::SELECT_EXPR1_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid expression: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::SELECT_EXPR1_PARSED: {
 			if (next_word == "=") {
-				select_query.SetCmp(EQUAL);
+				api.select_query.SetCmp(EQUAL);
 				state_code = State::SELECT_CMP_PARSED;
 			} 
 			else if (next_word == "!=") {
-				select_query.SetCmp(NOT_EQUAL);
+				api.select_query.SetCmp(NOT_EQUAL);
 				state_code = State::SELECT_CMP_PARSED;
 			}
 			else if(next_word == ">"){
-				select_query.SetCmp(GREATER);
+				api.select_query.SetCmp(GREATER);
 				state_code = State::SELECT_CMP_PARSED;
 			}
 			else if (next_word == "<") {
-				select_query.SetCmp(LESS);
+				api.select_query.SetCmp(LESS);
 				state_code = State::SELECT_CMP_PARSED;
 			}
 			else if (next_word == ">=") {
-				select_query.SetCmp(GREATER_EQUAL);
+				api.select_query.SetCmp(GREATER_EQUAL);
 				state_code = State::SELECT_CMP_PARSED;
 			}
 			else if (next_word == "<=") {
-				select_query.SetCmp(LESS_EQUAL);
+				api.select_query.SetCmp(LESS_EQUAL);
 				state_code = State::SELECT_CMP_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid comparison expression: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::SELECT_CMP_PARSED: {
 			if (is_expr(next_word)) {
-				select_query.SetWhereExpr(next_word);
+				api.select_query.SetWhereExpr(next_word);
 				state_code = State::SELECT_EXPR2_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid expression: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
@@ -882,24 +882,24 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::SELECT_AND_PARSED;
 			}
 			else if (next_word == ";") {
-				select_query.Query();
+				api.select_query.Query(api.record_manager);
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid argument: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}
 		} break;
 		case State::SELECT_AND_PARSED: {
 			if (is_expr(next_word)) {
-				select_query.SetExpr1(next_word);
+				api.select_query.SetExpr1(next_word);
 				state_code = State::SELECT_EXPR1_PARSED;
 			}
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid expression: " + next_word);
-				select_query.Clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 				return;
 			}

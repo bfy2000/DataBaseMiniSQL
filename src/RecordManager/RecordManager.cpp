@@ -1,4 +1,4 @@
-#include "recordManager.h"
+#include "RecordManager.h"
 
 extern CatalogManager catalogManager;
 

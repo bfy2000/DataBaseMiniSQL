@@ -9,10 +9,6 @@
 
 using namespace std;
 
-
-
-
-
 //* INSERT INTO ...
 InsertQuery::InsertQuery() {
 
@@ -28,10 +24,10 @@ void InsertQuery::Clear() {
 }
 
 void InsertQuery::Insert(string insert_val) {
-	Type this_type = UNDEFINED;
+	NumType this_type = DEFAULT;
 	string val;
 	if (insert_val[0] == '\\') {
-		this_type = STRING;
+		this_type = CHAR;
 		insert_val.erase(0,1);
 		vector<string> parse_vec = split(insert_val, '\\');
 		for (int i = 0; i < parse_vec.size(); i++) {
@@ -56,11 +52,12 @@ void InsertQuery::Insert(string insert_val) {
 	insert_values.push_back(InsertVal(val, this_type));
 }
 
-void InsertQuery::Query() {
-	cout << "INSERT VALUES:" << endl;
+void InsertQuery::Query(RecordManager& record_manager) {	
+	vector<pair<FieldType, string>> insert_values_to_records;
 	for (int i = 0; i < insert_values.size(); i++) {
-		cout << insert_values[i].val << "\ttype: " << insert_values[i].given_type << endl;
+		insert_values_to_records.push_back(pair<FieldType, string>(FieldType(insert_values[i].given_type), insert_values[i].val));
 	}
+	record_manager.insertValue(insert_table_name, insert_values_to_records);
 }
 
 
@@ -75,7 +72,7 @@ void InsertQuery::Query() {
 
 
 //* DROP INDEX ...
-void DropIndex(string drop_index) {
+void API::DropIndex(string drop_index) {
 	Prompt("Drop Index");
 }
 
@@ -88,7 +85,7 @@ void DropIndex(string drop_index) {
 
 
 //* DROP TABLE ...
-void DropTable(string drop_table) {
+void API::DropTable(string drop_table) {
 	Prompt("Drop Table");
 }
 
@@ -103,7 +100,7 @@ void DropTable(string drop_table) {
 
 
 //* CREATE INDEX ...
-void CreateIndex(string index_name, string table_name, string attr_name) {
+void API::CreateIndex(string index_name, string table_name, string attr_name) {
 	Prompt("Create Index\t" + index_name + "\t" + table_name + "\t" + attr_name);
 }
 
@@ -132,7 +129,7 @@ void CreateTable::InsertAttr(string &attr_name) {
 	attr_list[n].name = attr_name;
 }
 
-void CreateTable::InsertType(Type given_type) {
+void CreateTable::InsertType(NumType given_type) {
 	int n = attr_list.size() - 1;
 	attr_list[n].type = given_type;
 }
@@ -172,7 +169,7 @@ void CreateTable::Query() {
 SelectQuery::SelectQuery() :select_all(false) {}
 SelectQuery::~SelectQuery() {}
 
-void SelectQuery::Query() {
+void SelectQuery::Query(RecordManager& record_manager) {
 	select_all = false;
 	Prompt("SELECT ...");
 }

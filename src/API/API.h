@@ -1,24 +1,10 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "../RecordManager/RecordManager.h"
+#include "../Public/DataType.h"
 
 using namespace std;
-
-enum Type {		// attribute types
-	STRING,
-	INT,
-	FLOAT,
-	UNDEFINED
-};
-
-enum CMP {
-	EQUAL,
-	NOT_EQUAL,
-	GREATER,
-	GREATER_EQUAL,
-	LESS,
-	LESS_EQUAL  
-};
 
 struct WhereExpr {
 	string expr1;
@@ -31,9 +17,9 @@ struct WhereExpr {
 struct InsertVal		// insert values
 {
 	string val;			// value
-	Type given_type;	// type
-	InsertVal() : val(""), given_type(UNDEFINED) {}
-	InsertVal(string given_val, Type given_t) 
+	NumType given_type;	// type
+	InsertVal() : val(""), given_type(DEFAULT) {}
+	InsertVal(string given_val, NumType given_t) 
 		: val(given_val), given_type(given_t) {}
 };
 
@@ -45,25 +31,21 @@ public:
 
 	void Clear();		// clear all saved data
 	void Insert(string insert_val);	// insert value
-	void Query();		// main process function
+	void Query(RecordManager& record_manager);		// main process function
 private:
 	string insert_table_name;
 	vector<InsertVal> insert_values;
 };
 
 
-void DropIndex(string drop_index);
-void DropTable(string drop_table);
-void CreateIndex(string index_name, string table_name, string attr_name);
-
 
 struct CreateAttr {
 	string name;
-	Type type;
+	NumType type;
 	bool unique;
 	bool primary;
 	int size;
-	CreateAttr() : name{ "" }, type{ UNDEFINED }, size{1}, unique{ false }, primary{ false }{}
+	CreateAttr() : name{ "" }, type{ DEFAULT }, size{1}, unique{ false }, primary{ false }{}
 };
 
 class CreateTable
@@ -74,7 +56,7 @@ public:
 	
 	void SetTableName(string &given_table_name);
 	void InsertAttr(string &attr_name);
-	void InsertType(Type given_type);
+	void InsertType(NumType given_type);
 	void InsertSize(int given_size);
 	void InsertUnique();
 	void InsertPrimary(string& attr_name);
@@ -94,7 +76,7 @@ public:
 	SelectQuery();
 	~SelectQuery();
 
-	void Query();
+	void Query(RecordManager& record_manager);
 	void Insert(string &attr);
 	void Clear();
 	void SetSelectAll();
@@ -133,9 +115,18 @@ private:
 };
 
 
+class API {
+public:
+	InsertQuery insert_values_query;
+	CreateTable create_table;
+	SelectQuery select_query;
+	DeleteQuery delete_query;
 
+	RecordManager record_manager;
 
-
-
+	void DropIndex(string drop_index);
+	void DropTable(string drop_table);
+	void CreateIndex(string index_name, string table_name, string attr_name);
+};
 
 
