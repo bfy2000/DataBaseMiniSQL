@@ -154,7 +154,7 @@ bool RecordManager::isConflict(Tuple* tuple1, Tuple* tuple2, int index) {
       tuple2->getIsDeleted()) {  //若其中一个元组被删除，则不可能发生冲突
     return false;
   }
-  return tuple1->getData()[index] == tuple2->getData[index];
+  return tuple1->getData()[index] == tuple2->getData()[index];
 }
 
 Tuple RecordManager::getTupleByIndex(Table* table, int index) {
