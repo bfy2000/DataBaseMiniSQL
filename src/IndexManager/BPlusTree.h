@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __Minisql__BPlusTree__
 #define __Minisql__BPlusTree__
-#include "BufferManager.h"
+#include "../buffer/buffer.h"
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -42,14 +42,15 @@ public:
 template <typename Type>
 class BPlusTree {
 public:
-	BPlusTree(BufferManager* bm, string db_name, string table_name, int Degree, int SizeOfType, BlockId Root=-1, BlockId FirstLeaf=-1);
+	BPlusTree(string db_name, string table_name, int Degree, int SizeOfType, BlockId Root=-1, BlockId FirstLeaf=-1);
 	~BPlusTree();
 
 	void DeleteNode(std::shared_ptr<Node<Type>> x);
 	int Search(Type x);
 	bool InsertElement(Type element, int offset);
 	bool DeleteElement(Type element);
-
+	void greater_than(Type x, std::vector<int> &block_id);
+	void less_than(Type x, std::vector<int> &block_id);
 
 	void OutputTree(void);
 	bool CheckParent(BlockId nodeid);
@@ -67,7 +68,7 @@ public:
 	BlockId FirstLeaf;	//for traverse
 	int Degree;
 	int SizeOfType;
-	BufferManager* bm;
+	//BufferManager* bm;
 	string db_name;
 	string table_name;
 	string file_name;
@@ -120,7 +121,7 @@ void BPlusTree<string>::writeback(std::shared_ptr<Node<string>> node) {
 
 template<class Type>
 void BPlusTree<Type>::writeback(std::shared_ptr<Node<Type>> node) {
-	BlockInfo blockinfo = bm->get_block_info(db_name, table_name, 1, node->blockid);
+	BlockInfo blockinfo = get_block_info(db_name, table_name, 1, node->blockid);
 	char* block = blockinfo->cBlock;
 	int i = 0;
 	block[i] = -1;
@@ -369,6 +370,10 @@ int Node<Type>::Search(Type x) {
 	cout << "error" << endl;
 	return -1;
 }
+
+
+
+
 
 template <typename Type>
 void Node<Type>::Splite(Type &x, std::shared_ptr<Node<Type>> &NewNode) {
@@ -690,7 +695,7 @@ void Node<Type>::DeleteElement(int index) {
 }
 
 template<typename Type>
-BPlusTree<Type>::BPlusTree(BufferManager* bm, string db_name, string table_name, int Degree, int SizeOfType, BlockId Root, BlockId FirstLeaf){
+BPlusTree<Type>::BPlusTree(string db_name, string table_name, int Degree, int SizeOfType, BlockId Root, BlockId FirstLeaf){
 	this->db_name = db_name;
 	//this->table_name = table_name;
 	this->table_name = table_name;
@@ -698,7 +703,7 @@ BPlusTree<Type>::BPlusTree(BufferManager* bm, string db_name, string table_name,
 	this->SizeOfType = SizeOfType;
 	this->Root = Root;
 	this->FirstLeaf = FirstLeaf;
-	this->bm = bm;
+	//this->bm = bm;
 	if (this->Root == -1) {
 		this->Root = GetEmptyBlockId();
 		std::shared_ptr<Node<Type>> Root_node = std::make_shared<Node<Type>>(Degree, true, this->Root);
@@ -768,6 +773,62 @@ int BPlusTree<Type>::Search(Type x) {
 		return res_node->Offset[index];
 	}
 }
+
+template<typename Type>
+void BPlusTree<Type>::greater_than(Type x, std::vector<int> &block_id) {
+	std::shared_ptr<Node<Type>> res_node;
+	int index = -1;
+
+	char* block = getBlock(Root);
+	std::shared_ptr<Node<Type>> Root_node = std::make_shared<Node<Type>>(Degree, Root, block, SizeOfType);
+	RealSearch(Root_node, x, res_node, index);
+	if (index < 0) {
+		index = -(index + 1);
+	}
+	else {
+		index++;
+	}
+		for (int i = index; i < res_node->Num; i++) {
+			block_id.push_back(res_node->Offset[i]);
+		}
+		BlockId res = res_node->NextLeaf;
+		while (res != -1) {
+			res_node= std::make_shared<Node<Type>>(Degree, res, getBlock(res), SizeOfType);
+			for (int i = 0; i < res_node->Num; i++) {
+				block_id.push_back(res_node->Offset[i]);
+			}
+			res = res_node->NextLeaf;
+		}
+
+}
+
+template<typename Type>
+void BPlusTree<Type>::less_than(Type x, std::vector<int> &block_id) {
+	std::shared_ptr<Node<Type>> res_node;
+	int index = -1;
+
+	char* block = getBlock(Root);
+	std::shared_ptr<Node<Type>> Root_node = std::make_shared<Node<Type>>(Degree, Root, block, SizeOfType);
+	RealSearch(Root_node, x, res_node, index);
+	if (index < 0) {
+		index = -(index + 1);
+	}
+	else {
+	}
+	BlockId tmp = FirstLeaf;
+	std::shared_ptr<Node<Type>> tmp_node;
+	while (tmp != res_node->blockid && tmp != -1) {
+		tmp_node = std::make_shared<Node<Type>>(Degree, tmp, getBlock(tmp), SizeOfType);
+		for (int i = 0; i < tmp_node->Num; i++) {
+			block_id.push_back(tmp_node->Offset[i]);
+		}
+		tmp = tmp_node->NextLeaf;
+	}
+	for (int i = 0; i < index; i++) {
+		block_id.push_back(res_node->Offset[i]);
+	}
+}
+
 
 
 template<typename Type>
@@ -1005,7 +1066,7 @@ BlockId BPlusTree<Type>::GetEmptyBlockId() {
 	char *block;
 	do {
 		i++;
-		BlockInfo tmp = bm->get_block_info(db_name,table_name, 1, i);
+		BlockInfo tmp = get_block_info(db_name,table_name, 1, i);
 		/*if (tmp == nullptr) {
 			BlockInfo newbi = new blockInfo();
 			newbi->blockNum = i;
@@ -1027,13 +1088,13 @@ BlockId BPlusTree<Type>::GetEmptyBlockId() {
 
 template<typename Type>
 char* BPlusTree<Type>::getBlock(BlockId id) {
-	BlockInfo blockinfo = bm->get_block_info(db_name, table_name, 1, id);
+	BlockInfo blockinfo = get_block_info(db_name, table_name, 1, id);
 	return blockinfo->cBlock;
 }
 
 template<typename Type>
 void BPlusTree<Type>::writebackdeleted(std::shared_ptr<Node<Type>> node) {
-	BlockInfo blockinfo = bm->get_block_info(db_name, table_name, 1, node->blockid);
+	BlockInfo blockinfo = get_block_info(db_name, table_name, 1, node->blockid);
 	char* block = blockinfo->cBlock;
 	blockinfo->charNum = 1;
 	blockinfo->cBlock[0] = 0;

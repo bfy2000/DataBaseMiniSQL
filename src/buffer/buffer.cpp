@@ -227,7 +227,7 @@ void write_block_to_disk(string db_name, BlockInfo block)
 
 	//读取数据
 	int offset = BLOCK_SIZE * (block->blockNum);
-	fstream ofile(filepath,ios::out | ios::in );
+	fstream ofile(filepath,ios::out | ios::in | ios::binary);
 	ofile.seekp(offset, ios::beg);
 	string str(block->cBlock);
 	ofile.write(block->cBlock, BLOCK_SIZE);

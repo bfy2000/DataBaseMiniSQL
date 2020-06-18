@@ -1,15 +1,18 @@
 #include "IndexManager.h"
 
-IndexManager::IndexManager(BufferManager* bm) {
-	this->bm = bm;
+IndexManager::IndexManager() {
+	//this->bm = bm;
 }
 
 IndexManager::~IndexManager() {
 
 }
-void IndexManager::newFile(std::string filename) {
+void IndexManager::newFile(std::string db_name, std::string filename) {
+	string filepath = rootdir + db_name;
+	filepath += "\\index\\";
+	filepath += filename + ".txt";
 	std::fstream file;
-	file.open(filename, std::ios::out);
+	file.open(filepath, std::ios::out);
 }
 bool IndexManager::is_tree_already_exist(std::string filename, int type) {
 	if (type == 0) {
@@ -59,10 +62,10 @@ int IndexManager::get_degree(int type) {
 		cout << "unknown type" << endl;
 	}
 }
-void IndexManager::create_index(const std::string &db_name, const std::string &table_name, const std::string &index_name, int type) {
+void IndexManager::create_index(const std::string &db_name, const std::string &table_name, int type) {
 	std::string filename = table_name;
-	newFile(filename);
-	BlockInfo bpt = bm->get_block_info(db_name, table_name, 1, 0);//0 block for tree info
+	newFile(db_name, filename);
+	BlockInfo bpt = get_block_info(db_name, table_name, 1, 0);//0 block for tree info
 	char* block = bpt->cBlock;
 	*((int*)block) = -1;
 	*((int*)(block + sizeof(int))) = -1;
@@ -71,13 +74,13 @@ void IndexManager::create_index(const std::string &db_name, const std::string &t
 	}
 	else {
 		if (type == 0) {//int
-			int_index[filename] = std::make_shared<BPlusTree<int>>(bm, db_name,table_name,get_degree(type),sizeof(int));
+			int_index[filename] = std::make_shared<BPlusTree<int>>(db_name,table_name,get_degree(type),sizeof(int));
 		}
 		else if (type == -1) {//float
-			float_index[filename] = std::make_shared<BPlusTree<float>>(bm, db_name, table_name, get_degree(type), sizeof(float));
+			float_index[filename] = std::make_shared<BPlusTree<float>>(db_name, table_name, get_degree(type), sizeof(float));
 		}
 		else if (type > 0) {
-			string_index[filename] = std::make_shared<BPlusTree<std::string>>(bm, db_name, table_name, get_degree(type), type);
+			string_index[filename] = std::make_shared<BPlusTree<std::string>>(db_name, table_name, get_degree(type), type);
 			if (string_index_length.count(filename) == 0)
 			{
 				string_index_length[filename] = type;
@@ -88,18 +91,18 @@ void IndexManager::create_index(const std::string &db_name, const std::string &t
 
 void IndexManager::readintree(std::string db_name,std::string table_name, int type) {
 	std::string filename = table_name;
-	char* block = bm->get_block_info(db_name, table_name, 1, 0)->cBlock;
+	char* block = get_block_info(db_name, table_name, 1, 0)->cBlock;
 	BlockId Root = *((int*)(block));
 	BlockId LeftLeaf = *((int*)(block + sizeof(int)));
 	if (type == 0) {
 		
-		int_index[filename] = std::make_shared<BPlusTree<int>>(bm, db_name, table_name, get_degree(type), sizeof(int), Root, LeftLeaf);
+		int_index[filename] = std::make_shared<BPlusTree<int>>(db_name, table_name, get_degree(type), sizeof(int), Root, LeftLeaf);
 	}
 	else if (type == -1) {//float
-		float_index[filename] = std::make_shared<BPlusTree<float>>(bm, db_name, table_name, get_degree(type), sizeof(float), Root, LeftLeaf);
+		float_index[filename] = std::make_shared<BPlusTree<float>>(db_name, table_name, get_degree(type), sizeof(float), Root, LeftLeaf);
 	}
 	else if (type > 0) {
-		string_index[filename] = std::make_shared<BPlusTree<std::string>>(bm, db_name, table_name, get_degree(type), type, Root, LeftLeaf);
+		string_index[filename] = std::make_shared<BPlusTree<std::string>>(db_name, table_name, get_degree(type), type, Root, LeftLeaf);
 		if (string_index_length.count(filename) == 0)
 		{
 			string_index_length[filename] = type;
@@ -108,7 +111,7 @@ void IndexManager::readintree(std::string db_name,std::string table_name, int ty
 }
 
 bool IndexManager::find_element(const std::string &db_name, const std::string &table_name,
-	const std::string &index_name, const std::string &data, std::vector<int> &block_id,int type) {
+	const std::string &data, std::vector<int> &block_id,int type) {
 	std::string filename = table_name;
 	if (!is_tree_already_exist(filename, type))
 	{
@@ -134,7 +137,7 @@ bool IndexManager::find_element(const std::string &db_name, const std::string &t
 	return false;
 }
 bool IndexManager::insert_index(const std::string &db_name, const std::string &table_name,
-	const std::string &index_name, const std::string &data, int block_id, int type) {
+	const std::string &data, int block_id, int type) {
 	std::string filename = table_name;
 	if (!is_tree_already_exist(filename, type))
 	{
@@ -155,7 +158,7 @@ bool IndexManager::insert_index(const std::string &db_name, const std::string &t
 	return false;
 }
 bool IndexManager::delete_index(const std::string &db_name, const std::string &table_name,
-	const std::string &index_name, const std::string &data, int type) {
+	const std::string &data, int type) {
 	std::string filename = table_name;
 	if (!is_tree_already_exist(filename, type))
 	{
@@ -173,7 +176,7 @@ bool IndexManager::delete_index(const std::string &db_name, const std::string &t
 	}
 	return false;
 }
-void IndexManager::drop_index(const std::string &table_name, const std::string &index_name, int type) {
+void IndexManager::drop_index(const std::string &table_name, int type) {
 	std::string filename = table_name;
 	if (!is_tree_already_exist(filename, type))
 	{
@@ -197,4 +200,105 @@ void IndexManager::drop_index(const std::string &table_name, const std::string &
 	if (_file) {
 		remove(filename.c_str());
 	}
+}
+
+
+void IndexManager::greater_than(const std::string &db_name, const std::string &table_name,
+	const std::string &data, std::vector<int> &block_id, int type, int isEqual) {
+	std::string filename = table_name;
+	FileInfo tmp = get_file_info(filename, 1);
+	if (tmp == nullptr) {
+		add_file_to_list(table_name, 1, 4092, 4092);
+	}
+	if (!is_tree_already_exist(filename, type))
+	{
+		//从硬盘中加载
+		readintree(db_name, table_name, type);
+	}
+	if (!isEqual) {
+
+		if (type == 0) {
+			int_index[filename]->greater_than(atoi(data.c_str()), block_id);
+		}
+		else if (type == -1) {
+			float_index[filename]->greater_than(atof(data.c_str()), block_id);
+		}
+		else if (type > 0) {
+			string_index[filename]->greater_than(data, block_id);
+		}
+	}
+	else {
+		if (type == 0) {
+			block_id.push_back(int_index[filename]->Search(atoi(data.c_str())));
+			if (block_id[0] == -1) {
+				block_id.clear();
+			}
+			int_index[filename]->greater_than(atoi(data.c_str()), block_id);
+		}
+		else if (type == -1) {
+			block_id.push_back(float_index[filename]->Search(atof(data.c_str())));
+			if (block_id[0] == -1) {
+				block_id.clear();
+			}
+			float_index[filename]->greater_than(atof(data.c_str()), block_id);
+		}
+		else if (type > 0) {
+			block_id.push_back(string_index[filename]->Search(data));
+			if (block_id[0] == -1) {
+				block_id.clear();
+			}
+			string_index[filename]->greater_than(data, block_id);
+		}
+	}
+
+}
+
+void IndexManager::less_than(const std::string &db_name, const std::string &table_name,
+	const std::string &data, std::vector<int> &block_id, int type, int isEqual) {
+	std::string filename = table_name;
+	FileInfo tmp = get_file_info(filename, 1);
+	if (tmp == nullptr) {
+		add_file_to_list(table_name, 1, 4092, 4092);
+	}
+	if (!is_tree_already_exist(filename, type))
+	{
+		//从硬盘中加载
+		readintree(db_name, table_name, type);
+	}
+	if (!isEqual) {
+
+		if (type == 0) {
+			int_index[filename]->less_than(atoi(data.c_str()), block_id);
+		}
+		else if (type == -1) {
+			float_index[filename]->less_than(atof(data.c_str()), block_id);
+		}
+		else if (type > 0) {
+			string_index[filename]->less_than(data, block_id);
+		}
+	}
+	else {
+		if (type == 0) {
+			int_index[filename]->less_than(atoi(data.c_str()), block_id);
+			BlockId tmp=int_index[filename]->Search(atoi(data.c_str()));
+			if (tmp != -1) {
+				block_id.push_back(tmp);
+			}
+		}
+		else if (type == -1) {
+			float_index[filename]->less_than(atof(data.c_str()), block_id);
+			BlockId tmp = float_index[filename]->Search(atof(data.c_str()));
+			if (tmp != -1) {
+				block_id.push_back(tmp);
+			}
+		}
+		else if (type > 0) {
+			string_index[filename]->less_than(data, block_id);
+			BlockId tmp = string_index[filename]->Search(data);
+			if (tmp != -1) {
+				block_id.push_back(tmp);
+			}
+		}
+	}
+
 }

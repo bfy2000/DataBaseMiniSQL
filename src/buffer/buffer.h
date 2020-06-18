@@ -1,3 +1,4 @@
+#pragma once
 #define BLOCK_SIZE 4096
 #define MAX_ACTIVE_FILE 5
 #define MAX_BLOCK 40
