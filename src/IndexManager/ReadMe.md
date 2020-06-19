@@ -8,27 +8,27 @@ index部分最重要的bplustree已经测试完毕（int，float，string都可�
 new实例： IndexManager(BufferManager* bm)
 
 type: 0 -> int, -1 -> float, >0 -> string(type的值为string长度)  
-void create_index(const std::string &db_name, const std::string &table_name, int type);
+void create_index(const std::string &db_name, const std::string &table_name, const std::string &attribute_name,int type);
 
 寻找特定值的record的block_id。其中data用string存（不管是int还是float），然后再type中给出data的类型。返回是否找到，如果找到了，会将所要的block id放到block_id里。block_id需要clear    
 bool find_element(const std::string &db_name, const std::string &table_name,
-		const std::string &data, std::vector<int> &block_id, int type);
+		const std::string &attribute_name,const std::string &data, std::vector<int> &block_id, int type);
 
 参数和上面含义一样。返回是否insert成功。    
 bool insert_index(const std::string &db_name, const std::string &table_name,
-		const std::string &data, int block_id, int type);
+		const std::string &attribute_name,const std::string &data, int block_id, int type);
 
 参数和上面含义一样。返回是否delete成功。    
 bool delete_index(const std::string &db_name, const std::string &table_name,
-		const std::string &data, int type);
+		const std::string &attribute_name,const std::string &data, int type);
 
 丢弃一个index。  
-void drop_index(const std::string &table_name, int type);
+void drop_index(const std::string &db_name, const std::string &table_name, const std::string &attribute_name,int type);
 
 查找小于或者小于等于某个值所对应的所有record的对应block_id。其中isEqual为1表示小于等于，0为小于。使用前，vector需要clear。  
 void less_than(const std::string &db_name, const std::string &table_name,
-		const std::string &data, std::vector<int> &block_id, int type, int isEqual);
+		const std::string &attribute_name,const std::string &data, std::vector<int> &block_id, int type, int isEqual);
 
 查找大于或者大于等于某个值所对应的所有record的对应block_id。其中isEqual为1表示大于等于，0为大于。使用前，vector需要clear。  
 void greater_than(const std::string &db_name, const std::string &table_name,
-		const std::string &data, std::vector<int> &block_id, int type, int isEqual);
+		const std::string &attribute_name,const std::string &data, std::vector<int> &block_id, int type, int isEqual);
