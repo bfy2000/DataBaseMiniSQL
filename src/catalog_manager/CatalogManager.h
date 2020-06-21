@@ -10,7 +10,7 @@
 #include<exception>
 #include"Index.h"
 #include"Attribute.h"
-#include"Table.h"
+#include"../RecordManager/Table.h"
 #include"Address.h"
 #include"FieldType.h"
 class CatalogManager {
@@ -19,6 +19,7 @@ private:
 	map<string, Index> indexes;
 	string tableFilename = "table_catalog";
 	string indexFilename = "index_catalog";
+
 
 	//从 table_catalog文件中读取所有模式信息并插入到map tables中
 	void initial_table() {
@@ -101,7 +102,7 @@ private:
 	}
 	void store_table() {
 		ofstream file;
-		file.open(tableFilename, ios::out,ios::trunc);
+		file.open(tableFilename, ios::out, ios::trunc);
 		if (!file)
 		{
 			cout << "file " << tableFilename << " fail to open!" << endl;
@@ -177,7 +178,7 @@ private:
 		else return true;
 	}
 	bool is_attribute_exist(string tableName, string attributeName) {
-		Table tmpTable = get_table(tableName);
+		Table tmpTable = tables[tableName];
 		for (int i = 0; i < tmpTable.attributeVector.size(); i++) {
 			if (tmpTable.attributeVector[i].attributeName==attributeName)
 				return true;
@@ -264,8 +265,8 @@ public:
 		}
 	}
 
-	Table get_table(string tableName) {
-		return tables[tableName];
+	Table* get_table(string tableName) {
+		return &(tables[tableName]);
 	}
 
 	Index get_index(string indexName) {
@@ -273,25 +274,25 @@ public:
 	}
 
 	string get_primary_key(string tableName) {
-		return get_table(tableName).primaryKey;
+		return tables[tableName].primaryKey;
 	}
 
 	int get_row_length(string tableName) {
-		return get_table(tableName).rowLength;
+		return tables[tableName].rowLength;
 	}
 
 	int get_attribute_num(string tableName) {
-		return get_table(tableName).attributeNum;
+		return tables[tableName].attributeNum;
 	}
 
 	int get_row_num(string tableName) {
-		return get_table(tableName).rowNum;
+		return tables[tableName].rowNum;
 	}
 
 	//check
 	bool is_primary_key(string tableName, string attributeName) {
 		if (tables.find(tableName)!=tables.end()) {
-			Table tmpTable = get_table(tableName);
+			Table tmpTable = tables[tableName];
 			return tmpTable.primaryKey==attributeName;
 		}
 		else {
@@ -302,7 +303,7 @@ public:
 
 	bool is_unique(string tableName, string attributeName) {
 		if (tables.find(tableName)!=tables.end()) {
-			Table tmpTable = get_table(tableName);
+			Table tmpTable = tables[tableName];
 			for (int i = 0; i < tmpTable.attributeVector.size(); i++) {
 				Attribute tmpAttribute = tmpTable.attributeVector[i];
 				if (tmpAttribute.attributeName==attributeName) {
@@ -316,7 +317,10 @@ public:
 		}
 		cout<<"The table " << tableName << " doesn't exist"<<endl;
 		return false;
+	}
 
+	bool is_unique(string tableName, int i){
+		return is_unique(tableName, get_attribute_name(tableName, i));
 	}
 
 	bool drop_table(string tableName)  {
@@ -330,7 +334,7 @@ public:
 
 	bool is_index_key(string tableName, string attributeName) {
 		if (tables.find(tableName)!=tables.end()) {
-			Table tmpTable = get_table(tableName);
+			Table tmpTable = tables[tableName];
 			if (is_attribute_exist(tableName, attributeName)) {
 				for (int i = 0; i < tmpTable.indexVector.size(); i++) {
 					if (tmpTable.indexVector[i].attributeName==attributeName)
@@ -348,7 +352,7 @@ public:
 
 	string get_index_name(string tableName, string attributeName) {
 		if (tables.find(tableName)!=tables.end()) {
-			Table tmpTable = get_table(tableName);
+			Table tmpTable = tables[tableName];
 			if (is_attribute_exist(tableName, attributeName)) {
 				for (int i = 0; i < tmpTable.indexVector.size(); i++) {
 					if (tmpTable.indexVector[i].attributeName==attributeName)
@@ -390,6 +394,10 @@ public:
 		}
 		cout<<"The attribute " << attributeName << " doesn't exist"<<endl;
 		return FieldType();
+	}
+
+	FieldType get_attribute_type(string tableName, int i){
+		return get_attribute_type(tableName, get_attribute_name(tableName, i));
 	}
 
 	int get_length(string tableName, string attributeName) {
@@ -450,7 +458,7 @@ public:
 	}
 
 	bool create_index(Index newIndex) {
-		Table tmpTable = get_table(newIndex.tableName);
+		Table tmpTable = tables[newIndex.tableName];
 		tmpTable.indexVector.push_back(newIndex);
 		tmpTable.indexNum = tmpTable.indexVector.size();
 		indexes.insert(make_pair(newIndex.indexName, newIndex));
@@ -459,12 +467,24 @@ public:
 
 	bool drop_index(string indexName) {
 		Index tmpIndex = get_index(indexName);
-		Table tmpTable = get_table(tmpIndex.tableName);
+		Table tmpTable = tables[tmpIndex.tableName];
 		remove(tmpTable.indexVector.begin(), tmpTable.indexVector.end(), tmpIndex);
 		//tmpTable.indexVector.remove(tmpIndex);
 		tmpTable.indexNum = tmpTable.indexVector.size();
 		indexes.erase(indexName);
 		return true;
+	}
+
+	int get_type_for_match_IndexManager(string &tableName, int i){
+		FieldType ft = get_attribute_type(tableName, i);
+		if(ft.get_type() == INT){
+			return 0;//参考IndexManager.find_element(), 0 表示 int
+		} else if(ft.get_type() == FLOAT){
+			return -1;//参考IndexManager.find_element(), -1 表示 float
+		} else if(ft.get_type() == CHAR){
+			return ft.get_length();//参考IndexManager.find_element(), 大于0 表示 char串 且代表长度
+		}
+		return -2;
 	}
 };
 

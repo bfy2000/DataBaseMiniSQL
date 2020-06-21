@@ -34,6 +34,10 @@ public:
 	void less_than(const std::string &db_name, const std::string &table_name,
 		const std::string &attribute_name, const std::string &data, std::vector<int> &block_id, int type, int isEqual);
 
+	bool is_index_exist(const std::string &db_name, const std::string &table_name,
+		const std::string &attribute_name, int type);
+
+
 private:
 	//BufferManager *bm;
 	std::map<std::string, std::shared_ptr<BPlusTree<int>>> int_index;

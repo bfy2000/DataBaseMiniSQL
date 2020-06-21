@@ -1,6 +1,8 @@
 #ifndef __ELEMENT_H__
 #define __ELEMENT_H__
 #include <string>
+#include <cstring>
+#include <cstdlib>
 
 #include "../catalog_manager/FieldType.h"
 
@@ -66,6 +68,17 @@ class Element {
     } else {                       //最长能够存储length个'a'
       m_char = string(c, length);  //但是存储的空间需要+1
     }
+  }
+  string toString(){
+    string t;
+    if (type == INT) {  // int长度是4字节
+      t = to_string(m_int);
+    } else if (type == FLOAT) {  // float长度是4字节
+      t = to_string(m_float);
+    } else {  //最长能够存储length个'a'
+      t = m_char;
+    }
+    return t;
   }
   void printElement() {
     if (type == INT) {  // int长度是4字节

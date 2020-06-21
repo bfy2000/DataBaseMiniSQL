@@ -372,3 +372,9 @@ BlockId IndexManager::GetEmptyBlockId(const std::string &db_name, const std::str
 	} while (block[0] != 0);
 	return i;
 }
+
+
+bool IndexManager::is_index_exist(const std::string &db_name, const std::string &table_name,
+	const std::string &attribute_name, int type){
+		return is_tree_already_exist(table_name+"_"+attribute_name, type);
+	}

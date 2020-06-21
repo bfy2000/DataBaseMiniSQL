@@ -9,6 +9,7 @@
 #include <cstring>
 #include <vector>
 #include <queue>
+#include <memory>
 //#include <type_traits>
 using namespace std;
 

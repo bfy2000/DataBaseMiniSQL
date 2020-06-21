@@ -1,6 +1,8 @@
 #include "RecordManager.h"
 
 extern CatalogManager catalogManager;
+extern IndexManager indexManager;
+
 
 /**
          从逻辑上——
@@ -42,62 +44,63 @@ extern CatalogManager catalogManager;
 //	return true;
 //}
 
-// bool RecordManager::dropTable(string tableName)
-//{
-//	Table* table = isExistTable(tableName);
-//	if (table == NULL) {
-//		cerr << "不存在表格：" << tableName << endl;
-//		return false;
-//	}
-//	for (auto it = this->tables.begin(); it != this->tables.end(); ++it) {
-//		if (it->tableName == tableName) {
-//			this->tables.erase(it);
-//			return true;
-//		}
-//	}
-//	return false;
-//}
 
 // insertValue返回值为false表示出错，否则为正确执行
+
 bool RecordManager::insertValue(string tableName, Tuple tuple) {
-  Table table = catalogManager.get_table(
+  Table* table = catalogManager.get_table(
       tableName);  //建议把这个函数的返回值定义成返回指针
-  // if (table == NULL) {// 这里无法判断是否有这个表
-  //	cerr << "没有这个表" << endl;
-  //	return false;
-  //}
-  if (isMatchTheAttribute(&table, &tuple) == false) {
+  if (table == NULL) {// 这里无法判断是否有这个表
+  	cerr << "没有这个表" << endl;
+  	return false;
+  }
+  if (isMatchTheAttribute(table, &tuple) == false) {
     cerr << "Tuple attributes do not match the table" << endl;
     return false;
   }
 
-  if (isConflictTheUnique(&table, &tuple) == true) {
+  if (isConflictTheUnique(tableName, &tuple) == true) {
     cerr << "the primary key conflict" << endl;
     return false;
   }
 
-  char* tmpChar = (char*)malloc((table.rowLength + 2) * sizeof(char));
+  char* tmpChar = (char*)malloc((table->rowLength + 2) * sizeof(char));
   tupleToChar(tuple, tmpChar);
-  bool writeResult = writeToIndex(table.tableName, table.rowNum, tmpChar,
-                                  table.rowLength, "db_name?", 0);
+  bool writeResult = writeToIndex(table->tableName, table->rowNum, tmpChar,
+                                  table->rowLength, DB_NAME, 0);
   free(tmpChar);
   if (writeResult == false) {
     cerr << "写入buffer失败" << endl;
     return false;
   } else {
+    int attrNum = catalogManager.get_attribute_num(tableName);
+    for(int i=0; i<attrNum; i++){
+      if(!catalogManager.is_unique(tableName, i)) continue;//不是唯一的不可能存在索引
+      if(indexManager.is_index_exist(DB_NAME,
+            tableName, catalogManager.get_attribute_name(tableName, i),
+            catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立则插入索引
+        if(!indexManager.insert_index(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, i),
+              tuple.getData()[i].toString(), table->rowNum, catalogManager.get_type_for_match_IndexManager(tableName, i))){
+          cerr << "insert index error" << endl;
+          return false;
+        }
+      }
+    }
     cout << "写入buffer成功" << endl;
-    table.rowNum += 1;
+    table->rowNum += 1;
   }
   return true;
 }
 
-bool RecordManager::insertValue(string tableName,
-                                vector<pair<FieldType, string>> tupleString) {
-  Table table = catalogManager.get_table(
-      tableName);  // 建议把这个函数的返回值定义成返回指针
+bool RecordManager::insertValue(string tableName, vector<pair<FieldType, string>> tupleString) {
+  Table* table = catalogManager.get_table(tableName);  // 建议把这个函数的返回值定义成返回指针
+  if(table == NULL){
+    cerr << "没有这个表" << endl;
+  	return false;
+  }
 
   Tuple tuple;
-  tuple.setIndex(table.rowNum);  // 表示写在表的最后
+  tuple.setIndex(table->rowNum);  // 表示写在表的最后
 
   for (int i = 0; i < tupleString.size(); i++) {
     Element e;                                   // 对于每个 Element
@@ -138,12 +141,30 @@ bool RecordManager::isMatchTheAttribute(Table* table, Tuple* tuple) {
   return true;
 }
 
-bool RecordManager::isConflictTheUnique(Table* table, Tuple* tuple) {
-  for (int i = 0; i < table->rowNum; ++i) {
-    Tuple tmpTuple = getTupleByIndex(table, i);
-    if (isConflict(&tmpTuple, tuple, table->primaryKeyIndex) == true) {
-      cerr << "primary key conflict" << endl;
-      return true;  //认为发生了冲突
+//修改，与indexManager相关，与catalogManager相关
+bool RecordManager::isConflictTheUnique(string& tableName, Tuple* tuple) {
+  int attrNum = catalogManager.get_attribute_num(tableName);
+  Table* table = catalogManager.get_table(tableName);
+  for(int i=0; i<attrNum; i++){
+    if(!catalogManager.is_unique(tableName, i)) continue;//不是唯一的不管
+    if(indexManager.is_index_exist(DB_NAME,
+          tableName, catalogManager.get_attribute_name(tableName, i),
+          catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立
+      vector<int> block_id;
+      block_id.clear();
+      if(indexManager.find_element(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, i),
+            tuple->getData()[i].toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, i))){
+        //表示在unique的index上找到了
+        return true;//表示发生了冲突
+      }
+    } else{//表示一个unique的属性上没有索引，所以需要遍历
+      for(int j=0; j<table->rowNum; j++){
+        Tuple tmpTuple = getTupleByRowNumber(table, j);
+        if (isConflict(&tmpTuple, tuple, i) == true) {
+          cerr << "unique key conflict" << endl;
+          return true;  //认为发生了冲突
+        }
+      }
     }
   }
   return false;
@@ -157,7 +178,7 @@ bool RecordManager::isConflict(Tuple* tuple1, Tuple* tuple2, int index) {
   return tuple1->getData()[index] == tuple2->getData()[index];
 }
 
-Tuple RecordManager::getTupleByIndex(Table* table, int index) {
+Tuple RecordManager::getTupleByRowNumber(Table* table, int RowNumber) {
   Tuple tuple;
   char* tmpData = (char*)malloc((table->rowLength + 2) * sizeof(char));
   if (tmpData == NULL) {
@@ -166,25 +187,184 @@ Tuple RecordManager::getTupleByIndex(Table* table, int index) {
   }
   int tmpLength = table->rowLength;
   // 不知道db_name是什么东西
-  readData(table->tableName, "db_name?", index * table->rowLength, tmpData,
+  readData(table->tableName, DB_NAME, RowNumber * table->rowLength, tmpData,
            tmpLength, 0);
   Tuple tmpTuple = charToTuple(table, tmpData);
   free(tmpData);
   return tuple;
 }
 
-//仅允许单个条件，或者多个条件的and类型的查询操作（or是不行的）
-vector<Tuple> RecordManager::searchQuery(
-    string tableName, vector<SelectCondition> selectConditions) {
+//仅允许单个条件，或者多个条件的and类型的查询操作（or是不行的，需要预处理成and）
+vector<Tuple> RecordManager::searchQuery(string tableName, vector<SelectCondition> selectConditions) {
+  Table* table = catalogManager.get_table(
+      tableName);  //建议把这个函数的返回值定义成返回指针
+  if (table == NULL) {// 这里无法判断是否有这个表
+  	cerr << "没有这个表" << endl;
+  	return vector<Tuple>();
+  }
+
+  int scn = selectConditions.size();
+  vector<bool> vis(scn, false);
+  int cntIndex = 0;
+  vector<int> block_id;
+  int cntNormal = 0;
+  vector<Tuple> tuples;
+  while(true){//select with index
+    int tmp = -1;
+    for(int i=0; i<scn; i++){
+      if(vis[i] == true) continue;
+      if(!(table->attributeVector[selectConditions[i].attributeIndex].isUnique)) continue;
+      if(!indexManager.is_index_exist(DB_NAME,
+          tableName, catalogManager.get_attribute_name(tableName, i),
+          catalogManager.get_type_for_match_IndexManager(tableName, i))) continue;
+      tmp = i;//找到一个建立了索引的属性
+      break;
+    }
+    if(tmp == -1) break;
+    vis[tmp] = true;
+    if(cntIndex == 0){
+      block_id = selectWithIndex(tableName, selectConditions[tmp]);
+      sort(block_id.begin(), block_id.end());//做排序，为了下面更好的操作
+    } else {
+      vector<int> tmpBlockId = selectWithIndex(tableName, selectConditions[tmp]);
+      sort(tmpBlockId.begin(), tmpBlockId.end());//做排序，为了下面更好的操作
+      for(int i=0; i<block_id.size(); i++){
+        if(find(tmpBlockId.begin(), tmpBlockId.end(), block_id[i]) == tmpBlockId.end()){//没找到，说明并不是两个集合里面都有的，所以删去
+          block_id.erase(block_id.begin()+i);
+          i--;
+        }
+      }
+    }
+    cntIndex++;
+  }
+  if(cntIndex == 0){//说明这个表没有可用索引
+    return searchQueryWithoutIndex(tableName, selectConditions);
+  } else {
+    for (int i = 0; i < block_id.size(); i++) {
+      Tuple tmp = getTupleByRowNumber(table, block_id[i]);
+      if (tmp.getIsDeleted()) continue;
+      tuples.push_back(tmp);
+    }
+  }
+  while(true){
+    int tmp = -1;
+    for(int i=0; i<scn; i++){
+      if(vis[i]) continue;
+      tmp = i;
+      break;
+    }
+    if(tmp == -1) break;//表示所有条件均考虑了
+    vis[tmp] = true;
+    selectWithTempTuples(tableName, selectConditions[tmp], tuples);
+  }
+  return tuples;
+}
+
+vector<int> RecordManager::selectWithIndex(string& tableName, SelectCondition& condition){
+  vector<int> block_id;
+  block_id.clear();
+  if(condition.opt == EQUAL){
+    indexManager.find_element(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, condition.attributeIndex),
+        condition.value.toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, condition.attributeIndex));
+  } else if(condition.opt == NOT_EQUAL){
+    int flag = -1;
+    if(indexManager.find_element(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, condition.attributeIndex),
+        condition.value.toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, condition.attributeIndex))){
+      flag = block_id[0];
+    }
+    block_id.clear();
+    for(int i=0; i<catalogManager.get_table(tableName)->rowNum; i++){
+      block_id.push_back(i);
+    }
+    if(flag != -1){//如果找到了EQU的，那么就删去，因为是unique的，所以最多只需要删去1个元素
+      block_id.erase(find(block_id.begin(), block_id.end(), flag));
+    }
+  } else if(condition.opt == GREATER){
+    indexManager.greater_than(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, condition.attributeIndex),
+        condition.value.toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, condition.attributeIndex), 0);
+  } else if(condition.opt == GREATER_EQUAL){
+    indexManager.greater_than(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, condition.attributeIndex),
+        condition.value.toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, condition.attributeIndex), 1);
+  } else if(condition.opt == LESS){
+    indexManager.less_than(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, condition.attributeIndex),
+        condition.value.toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, condition.attributeIndex), 0);
+  } else if(condition.opt == LESS_EQUAL){
+    indexManager.less_than(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, condition.attributeIndex),
+        condition.value.toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, condition.attributeIndex), 1);
+  }
+  return block_id;
+}
+/*
+vector<Tuple> RecordManager::selectWithBlockID(string& tableName, SelectCondition& condition, vector<int>& block_id){
   vector<Tuple> ans;
-  Table table = catalogManager.get_table(
+  Table* table = catalogManager.get_table(tableName);  //建议把这个函数的返回值定义成返回指针
+  for (int i = 0; i < block_id.size(); i++) {
+    Tuple tmp = getTupleByRowNumber(table, block_id[i]);
+    if (tmp.getIsDeleted()) continue;
+    bool valid = true;
+    if (judgeCondition(tmp, condition) == false) {
+      valid = false;
+      break;
+    }
+    if (valid) {
+      ans.push_back(tmp);
+    }
+  }
+  return ans;
+}
+
+
+vector<Tuple> RecordManager::selectWithoutBlockID(string& tableName, SelectCondition& condition){
+  vector<Tuple> ans;
+  Table* table = catalogManager.get_table(tableName);  //建议把这个函数的返回值定义成返回指针
+  for (int i = 0; i < table->rowNum; i++) {
+    Tuple tmp = getTupleByRowNumber(table, i);
+    if (tmp.getIsDeleted()) continue;
+    bool valid = true;
+    if (judgeCondition(tmp, condition) == false) {
+      valid = false;
+      break;
+    }
+    if (valid) {
+      ans.push_back(tmp);
+    }
+  }
+  return ans;
+}
+*/
+void RecordManager::selectWithTempTuples(string& tableName, SelectCondition& condition, vector<Tuple>& tuples){
+  for(int i=0; i<tuples.size(); i++){
+    if(judgeCondition(tuples[i], condition) == false){
+      tuples.erase(tuples.begin()+i);
+    }
+  }
+}
+
+vector<Tuple> RecordManager::searchQuery(string tableName) {
+  vector<Tuple> ans;
+  Table* table = catalogManager.get_table(
       tableName);  //建议把这个函数的返回值定义成返回指针
   // if (table == NULL) {// 这里无法判断是否有这个表
   //	cerr << "没有这个表" << endl;
   //	return ans;
   //}
-  for (int i = 0; i < table.rowNum; i++) {
-    Tuple tmp = getTupleByIndex(&table, i);
+  for (int i = 0; i < table->rowNum; i++) {
+    Tuple tmp = getTupleByRowNumber(table, i);
+    if (tmp.getIsDeleted()) continue;
+    ans.push_back(tmp);
+  }
+  return ans;
+}
+
+vector<Tuple> RecordManager::searchQueryWithoutIndex(string tableName, vector<SelectCondition> selectConditions) {
+  vector<Tuple> ans;
+  Table* table = catalogManager.get_table(tableName);  //建议把这个函数的返回值定义成返回指针
+  if (table == NULL) {// 这里无法判断是否有这个表
+  	cerr << "没有这个表" << endl;
+  	return ans;
+  }
+  for (int i = 0; i < table->rowNum; i++) {
+    Tuple tmp = getTupleByRowNumber(table, i);
     if (tmp.getIsDeleted()) continue;
     bool valid = true;
     for (auto it = selectConditions.begin(); it != selectConditions.end();
@@ -197,22 +377,6 @@ vector<Tuple> RecordManager::searchQuery(
     if (valid) {
       ans.push_back(tmp);
     }
-  }
-  return ans;
-}
-// A<10 or B<10
-vector<Tuple> RecordManager::searchQuery(string tableName) {
-  vector<Tuple> ans;
-  Table table = catalogManager.get_table(
-      tableName);  //建议把这个函数的返回值定义成返回指针
-  // if (table == NULL) {// 这里无法判断是否有这个表
-  //	cerr << "没有这个表" << endl;
-  //	return ans;
-  //}
-  for (int i = 0; i < table.rowNum; i++) {
-    Tuple tmp = getTupleByIndex(&table, i);
-    if (tmp.getIsDeleted()) continue;
-    ans.push_back(tmp);
   }
   return ans;
 }
@@ -250,61 +414,99 @@ bool RecordManager::judgeCondition(Tuple tuple, SelectCondition condition) {
   return false;
 }
 
-int RecordManager::deleteTuple(string tableName,
-                               vector<SelectCondition> selectConditions) {
-  Table table = catalogManager.get_table(
+int RecordManager::deleteTuple(string tableName, vector<SelectCondition> selectConditions = vector<SelectCondition>()) {
+  Table* table = catalogManager.get_table(
       tableName);  //建议把这个函数的返回值定义成返回指针
-  // if (table == NULL) {// 这里无法判断是否有这个表
-  //	cerr << "没有这个表" << endl;
-  //	return ans;
-  //}
+  if (table == NULL) {// 这里无法判断是否有这个表
+  	cerr << "没有这个表" << endl;
+  	return -1;
+  }
+
   vector<Tuple> searchResult = searchQuery(tableName, selectConditions);
   if (searchResult.size() == 0) {
     cerr << "no tuple need to be deleted, please check the conditions" << endl;
     return 0;
   }
+
+  vector<int> attrWithIndex_attrIndex;
+  int attrNum = catalogManager.get_attribute_num(tableName);
+  for(int i=0; i<attrNum; i++){
+    if(!catalogManager.is_unique(tableName, i)) continue;//不是唯一的不可能存在索引
+    if(indexManager.is_index_exist(DB_NAME,
+          tableName, catalogManager.get_attribute_name(tableName, i),
+          catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立
+      attrWithIndex_attrIndex.push_back(i);
+    }
+  }
+
   int deleteNum = searchResult.size();
   for (int i = 0; i < deleteNum; i++) {
     Tuple tuple = searchResult[i];
     char* tmpChar = (char*)malloc(sizeof(char));
     *tmpChar = '0';
     bool writeResult = writeToIndex(tableName, tuple.getIndex(), tmpChar, 1,
-                                    "db_name?", 0);  //修改最前面的删除标记
+                                    DB_NAME, 0);  //修改最前面的删除标记
     free(tmpChar);
     if (writeResult == false) {
       cerr << "write to buffer error" << endl;
       return -1;
     }
     // table.rowNum -= 1;//但是不修改数据行数标记
+    for(int j=0; j<attrWithIndex_attrIndex.size(); j++){//删除这条数据的所有索引
+      indexManager.delete_index(DB_NAME, tableName,
+          catalogManager.get_attribute_name(tableName, attrWithIndex_attrIndex[j]),
+          tuple.getData()[attrWithIndex_attrIndex[j]].toString(),
+          catalogManager.get_type_for_match_IndexManager(tableName, attrWithIndex_attrIndex[j]));
+    }
   }
   return deleteNum;
 }
 
+/*
 int RecordManager::deleteTuple(string tableName) {
-  Table table = catalogManager.get_table(
+  Table* table = catalogManager.get_table(
       tableName);  //建议把这个函数的返回值定义成返回指针
-  // if (table == NULL) {// 这里无法判断是否有这个表
-  //	cerr << "没有这个表" << endl;
-  //	return ans;
-  //}
+  if (table == NULL) {// 这里无法判断是否有这个表
+  	cerr << "没有这个表" << endl;
+  	return -1;
+  }
   vector<Tuple> searchResult = searchQuery(tableName);
   if (searchResult.size() == 0) {
     cerr << "no tuple need to be deleted, please check the conditions" << endl;
     return 0;
   }
+
+  vector<int> attrWithIndex_attrIndex;
+  int attrNum = catalogManager.get_attribute_num(tableName);
+  for(int i=0; i<attrNum; i++){
+    if(!catalogManager.is_unique(tableName, i)) continue;//不是唯一的不可能存在索引
+    if(indexManager.is_index_exist(DB_NAME,
+          tableName, catalogManager.get_attribute_name(tableName, i),
+          catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立
+      attrWithIndex_attrIndex.push_back(i);
+    }
+  }
+
   int deleteNum = searchResult.size();
   for (int i = 0; i < deleteNum; i++) {
     Tuple tuple = searchResult[i];
     char* tmpChar = (char*)malloc(sizeof(char));
     *tmpChar = '0';
     bool writeResult = writeToIndex(tableName, tuple.getIndex(), tmpChar, 1,
-                                    "db_name?", 0);  //修改最前面的删除标记
+                                    DB_NAME, 0);  //修改最前面的删除标记
     free(tmpChar);
     if (writeResult == false) {
       cerr << "write to buffer error" << endl;
       return -1;
     }
     // table.rowNum -= 1;//但是不修改数据行数标记
+    for(int j=0; j<attrWithIndex_attrIndex.size(); j++){//删除这条数据的所有索引
+      indexManager.delete_index(DB_NAME, tableName,
+          catalogManager.get_attribute_name(tableName, attrWithIndex_attrIndex[j]),
+          tuple.getData()[attrWithIndex_attrIndex[j]].toString(),
+          catalogManager.get_type_for_match_IndexManager(tableName, attrWithIndex_attrIndex[j]));
+    }
   }
   return deleteNum;
 }
+*/

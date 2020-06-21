@@ -5,21 +5,29 @@
 #include "Table.h"
 #include "../catalog_manager/attribute.h"
 #include "base.h"
+#include "../IndexManager/IndexManager.h"
+
+#define DB_NAME "db_name?"
 
 class RecordManager {
  public:
-  // Table* isExistTable(string tableName);
-  // bool createTable(string tableName, string primaryKey, vector<Attribute>
-  // attributeVector); bool dropTable(string tableName);
+  //插入数据，可以有两种方式，并完成索引的建立（如有）
   bool insertValue(string tableName, Tuple tuple);
-  bool insertValue(string tableName,
-                   vector<pair<FieldType, string>> tupleString);
+  bool insertValue(string tableName, vector<pair<FieldType, string>> tupleString);
   
-  int deleteTuple(string tableName, vector<SelectCondition> selectConditions);
-  int deleteTuple(string tableName);
-  vector<Tuple> searchQuery(string tableName,
-                            vector<SelectCondition> selectConditions);
+  //删除数据行，若没有选择条件，就是删除所有数据和索引
+  int deleteTuple(string tableName, vector<SelectCondition> selectConditions = vector<SelectCondition>());
+  // int deleteTuple(string tableName);
+
+  //通用select with conditions
+  vector<Tuple> searchQuery(string tableName, vector<SelectCondition> selectConditions);
+
+  //用于select *
   vector<Tuple> searchQuery(string tableName);
+
+  //调用者可以保证查询过程没有索引
+  vector<Tuple> searchQueryWithoutIndex(string tableName, vector<SelectCondition> selectConditions);
+
   void PrintTable(Table* table) {
     for (int i = 0; i < table->attributeVector.size(); i++) {
       cout << table->attributeVector[i].attributeName << "\t";
@@ -33,7 +41,7 @@ class RecordManager {
     }
     for (int i = 0; i < table->rowNum; i++) {
       readData(table->tableName, "db_name?", i, tmpChar, table->rowLength, 0);
-      Tuple tuple = getTupleByIndex(table, i);
+      Tuple tuple = getTupleByRowNumber(table, i);
       for (int j = 0; j < tuple.getData().size(); i++) {
         tuple.getData()[j].printElement();
         cout << "\t";
@@ -46,7 +54,7 @@ class RecordManager {
  private:
   bool judgeCondition(Tuple tuple, SelectCondition condition);
   bool isMatchTheAttribute(Table* table, Tuple* tuple);
-  bool isConflictTheUnique(Table* table, Tuple* tuple);
+  bool isConflictTheUnique(string& tableName, Tuple* tuple);
   bool isConflict(Tuple* tuple1, Tuple* tuple2, int index);
   Tuple charToTuple(Table* table, char* c) {
     Tuple tuple;  // 0 1234   jsaoeprnvernvjnvjdfsvkl;df
@@ -95,7 +103,13 @@ class RecordManager {
       c = c + tuple.getData()[i].length;
     }
   }
-  Tuple getTupleByIndex(Table* table, int index);
+  Tuple getTupleByRowNumber(Table* table, int RowNumber);
+
+  vector<int> selectWithIndex(string& tableName, SelectCondition& condition);
+  void selectWithTempTuples(string& tableName, SelectCondition& condition, vector<Tuple>& tuples);
+
+  
+  
 };
 
 #endif

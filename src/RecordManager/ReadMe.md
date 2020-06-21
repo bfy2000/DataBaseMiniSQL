@@ -1,3 +1,14 @@
+# 2020年06月20日修改后的需要进行的协调
+* IndexManager需要检查 函数 	
+        void is_index_exist(const std::string &db_name, const std::string &table_name,
+		    const std::string &attribute_name);
+	能否完成判断一个表的某个unique属性是否建立了索引？
+* IndexManager查询得到的结果，是否已经判断过这条数据是否删除？
+* 请IndexManager与CatalogManager协调
+
+
+
+
 模块调用时出现的一些些问题：
 
 * `CatalogManager.h`中的`map<string, Table> tables;`应当为`map<string, Table*> tables;`
