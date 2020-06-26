@@ -21,7 +21,21 @@ Catalog:        [-120,-100)
 Buffer:         [-140,-120)
 
  */
-enum Result {TABLE_NAME_ERROR=-100, ERROR=-1, SUCCESS=0};
+enum Result {
+      TABLE_NAME_ERROR=-100, 
+      ERROR=-1, 
+      SUCCESS=0,
+      
+      //indexmanager info
+      WRONG_TYPE=-99,
+      BPT_ALREADY_EXSIST=-98,
+      NO_INDEX=-97,
+      NO_SUCH_ELEMENT=-96,
+      INSERT_FAIL=-95,
+      DELETE_FAIL=-94,
+      
+      
+      };
 
 /*
 表示元素的类型

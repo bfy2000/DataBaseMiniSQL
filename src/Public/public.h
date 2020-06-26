@@ -22,7 +22,11 @@ Catalog:        [-120,-100)
 Buffer:         [-140,-120)
 
  */
-enum Result {TABLE_NAME_ERROR=-100, ERROR=-1, SUCCESS=0};
+enum Result {
+      TABLE_NAME_ERROR=-100, 
+      ERROR=-1, 
+      SUCCESS=0
+};
 
 /*
 表示元素的类型

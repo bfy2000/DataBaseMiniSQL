@@ -10,7 +10,6 @@ CatalogManager catalogManager;
 int main(int argc, char *argv[]) {
     
     catalogManager.initial_catalog();
-    return 0;
 
 
     string file_path;

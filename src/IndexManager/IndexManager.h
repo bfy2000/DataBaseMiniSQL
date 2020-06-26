@@ -1,6 +1,7 @@
 #pragma once
 #include "BPlusTree.h"
 #include "../buffer/buffer.h"
+#include "../Public/FieldType.h"
 #include <iostream>
 #include <cstdio>
 #include <string>
@@ -21,21 +22,21 @@ public:
 	//0 integer
 	//-1 float
 	//n string
-	void create_index(const std::string &db_name, const std::string &table_name,const std::string &attribute_name,int type);
-	bool find_element(const std::string &db_name, const std::string &table_name,
-		const std::string &attribute_name, const std::string &data, std::vector<int> &block_id, int type);
-	bool insert_index(const std::string &db_name, const std::string &table_name,
-		const std::string &attribute_name, const std::string &data, int block_id, int type);
-	bool delete_index(const std::string &db_name, const std::string &table_name,
-		const std::string &attribute_name, const std::string &data, int type);
-	void drop_index(const std::string db_name, const std::string &table_name, const std::string &attribute_name, int type);
-	void greater_than(const std::string &db_name, const std::string &table_name,
-		const std::string &attribute_name, const std::string &data, std::vector<int> &block_id, int type, int isEqual);
-	void less_than(const std::string &db_name, const std::string &table_name,
-		const std::string &attribute_name, const std::string &data, std::vector<int> &block_id, int type, int isEqual);
+	Result create_index(const std::string &db_name, const std::string &table_name,const std::string &attribute_name, FieldType type);
+	Result find_element(const std::string &db_name, const std::string &table_name,
+		const std::string &attribute_name, FieldType type, const std::string &data, std::vector<int> &block_id);
+	Result insert_index(const std::string &db_name, const std::string &table_name,
+		const std::string &attribute_name, FieldType type, const std::string &data, int block_id);
+	Result delete_index(const std::string &db_name, const std::string &table_name,
+		const std::string &attribute_name, FieldType type, const std::string &data);
+	Result drop_index(const std::string db_name, const std::string &table_name, const std::string &attribute_name, FieldType type);
+	Result greater_than(const std::string &db_name, const std::string &table_name,
+		const std::string &attribute_name, FieldType type, const std::string &data, std::vector<int> &block_id, int isEqual);
+	Result less_than(const std::string &db_name, const std::string &table_name,
+		const std::string &attribute_name, FieldType type, const std::string &data, std::vector<int> &block_id, int isEqual);
 
 	bool is_index_exist(const std::string &db_name, const std::string &table_name,
-		const std::string &attribute_name, int type);
+		const std::string &attribute_name, FieldType type);
 
 
 private:
@@ -49,9 +50,9 @@ private:
 	std::map<std::string, BlockId> string_index_start_block;
 
 	void newFile(std::string db_name, std::string filename);
-	bool is_tree_already_exist(std::string filename, int type);
-	int get_degree(int type);
-	void readintree(std::string db_name, std::string table_name, const std::string &attribute_name, int type);
+	bool is_tree_already_exist(std::string filename, FieldType type);
+	int get_degree(FieldType type);
+	//void readintree(std::string db_name, std::string table_name, const std::string &attribute_name, int type);
 	BlockId GetEmptyBlockId(const std::string &db_name, const std::string &table_name);
 	char* getBlock(const std::string &db_name, const std::string &table_name,BlockId id) {
 		BlockInfo blockinfo = get_block_info(db_name, table_name, 1, id);

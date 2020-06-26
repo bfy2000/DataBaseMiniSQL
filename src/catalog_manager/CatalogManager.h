@@ -102,7 +102,7 @@ private:
 	}
 	void store_table() {
 		ofstream file;
-		file.open(tableFilename, ios::out, ios::trunc);
+		file.open(tableFilename, ios::out | ios::trunc);
 		if (!file)
 		{
 			cout << "file " << tableFilename << " fail to open!" << endl;
@@ -150,7 +150,7 @@ private:
 	}
 	void store_index() {
 		ofstream file;
-		file.open(tableFilename, ios::out, ios::trunc);
+		file.open(tableFilename, ios::out | ios::trunc);
 		if (!file)
 		{
 			cout << "file " << tableFilename << " fail to open!" << endl;
