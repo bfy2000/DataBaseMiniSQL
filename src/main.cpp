@@ -11,8 +11,6 @@ int main(int argc, char *argv[]) {
     
     catalogManager.initial_catalog();
 
-
-    string file_path;
     switch (argc)
     {
     case 1: {
@@ -46,7 +44,7 @@ int main(int argc, char *argv[]) {
     } break;
     case 2: {
 		//Interpreter interpreter;
-		//file_path = argv[1];
+		//string file_path = argv[1];
 
 		//if (interpreter.ParseFileInput(file_path)) {
 		//	interpreter.ExecFile(file_path);

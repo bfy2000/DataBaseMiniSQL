@@ -33,6 +33,7 @@ class Element {
   friend std::ostream &operator<<(std::ostream &out, Element &e);
   void setData(int i) { m_int = i; }
   void setData(float f) { m_float = f; }
+  void setData(string s) { m_char = s; }
   // Element(std::string s, int char_num);
   Element(std::string s, int l = 1) {
     type = CHAR;

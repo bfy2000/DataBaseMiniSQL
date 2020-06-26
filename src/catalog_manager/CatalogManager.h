@@ -8,11 +8,11 @@
 #include<map>
 #include<string>
 #include<exception>
-#include"Index.h"
-#include"Attribute.h"
-#include"../RecordManager/Table.h"
+//#include"../Public/Index.h"
+#include"../Public/Attribute.h"
+#include"../Public/Table.h"
 #include"Address.h"
-#include"FieldType.h"
+#include"../Public/FieldType.h"
 class CatalogManager {
 private:
 	map<string, Table> tables;

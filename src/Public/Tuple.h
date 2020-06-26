@@ -87,63 +87,8 @@ class Tuple {
   void setIndex(int i) { index = i; }
 };
 
-/*定义数据库*/
-class DataBase {
- public:
-  std::string dataBaseName;
-  std::vector<Table> tables;  //存储当前数据库中所有的数据表
-  DataBase(std::string name) : dataBaseName(name) {}
+class TupleOfString{
+
 };
-
-/*定义数据表---采用catalog中的Table定义*/
-/*class Table {
-public:
-        std::string tableName;				//表名
-        std::vector<TableAttr> tableAttrs;	//一个表有多个属性
-        //int attrNum;						//属性数
-        int primaryKeyIndex;				//数据表中的主键
-        std::string primaryKey;				//主键名字
-        //vector<BlockInfo> data;			//数据表中的数据
-        int blockNum;						//占用的block数
-        int recordNum;						//记录条数
-        int recordLength;					//每条记录的长度
-
-        Table() : blockNum(0), recordNum(0), recordLength(0) {}
-        Table(std::string name, std::string primaryKey) : tableName(name),
-primaryKey(primaryKey) {} ~Table() {}
-};*/
-
-/*定义表中某一个属性---采用catalog中的Table定义*/
-/*class TableAttr {
-public:
-        std::string attrName;//属性名
-        Type type;//属性类型
-};*/
-
-/*BlockInfo与FileInfo为来自buffer的类定义*/
-
-/*class FileInfo {
-public:
-        int type;
-        std::string fileName;
-        int recordAmout;
-        int freeNum;
-        int recordLength;
-        FileInfo* next;
-        BlockInfo* first;
-};
-
-class BlockInfo {
-public:
-        int blockNum;
-        bool dirtyBit;
-        BlockInfo* next;
-        FileInfo file;
-        int charNum;
-        char* cBlock;
-        int call_times;
-        int lock;
-        bool isfree;
-};*/
 
 #endif  // BASE

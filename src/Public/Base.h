@@ -34,6 +34,11 @@ enum Result {
       INSERT_FAIL=-95,
       DELETE_FAIL=-94,
       
+      //API
+      ATTRIBUTE_TYPE_ERROR=-60,
+      NO_SUCH_TABLE=-59,
+      NO_SUCH_ATTR=-58,
+      UNIQUE_CONFLICT=-57,
       
       };
 

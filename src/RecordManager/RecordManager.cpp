@@ -1,8 +1,5 @@
 #include "RecordManager.h"
 
-extern CatalogManager catalogManager;
-extern IndexManager indexManager;
-
 
 /**
          从逻辑上——
@@ -47,21 +44,20 @@ extern IndexManager indexManager;
 
 // insertValue返回值为false表示出错，否则为正确执行
 
-bool RecordManager::insertValue(string tableName, Tuple tuple) {
-  Table* table = catalogManager.get_table(
-      tableName);  //建议把这个函数的返回值定义成返回指针
-  if (table == NULL) {// 这里无法判断是否有这个表
-  	cerr << "没有这个表" << endl;
-  	return false;
-  }
+int RecordManager::insertValue(Table* table, Tuple tuple, int hasIndex, IndexManager& index_manager) {
+  // Table* table = catalog_manager.get_table(tableName);  //建议把这个函数的返回值定义成返回指针
+  // if (table == NULL) {// 这里无法判断是否有这个表
+  // 	cerr << "没有这个表" << endl;
+  // 	return NO_SUCH_TABLE;
+  // }
   if (isMatchTheAttribute(table, &tuple) == false) {
     cerr << "Tuple attributes do not match the table" << endl;
-    return false;
+    return NO_SUCH_ATTR;
   }
 
-  if (isConflictTheUnique(tableName, &tuple) == true) {
+  if (isConflictTheUnique(table, &tuple, hasIndex, index_manager) == true) {
     cerr << "the primary key conflict" << endl;
-    return false;
+    return UNIQUE_CONFLICT;//Table* table, Tuple* tuple, int hasIndex, IndexManager& index_manager
   }
 
   char* tmpChar = (char*)malloc((table->rowLength + 2) * sizeof(char));
@@ -72,58 +68,56 @@ bool RecordManager::insertValue(string tableName, Tuple tuple) {
   if (writeResult == false) {
     cerr << "写入buffer失败" << endl;
     return false;
-  } else {
-    int attrNum = catalogManager.get_attribute_num(tableName);
-    for(int i=0; i<attrNum; i++){
-      if(!catalogManager.is_unique(tableName, i)) continue;//不是唯一的不可能存在索引
-      if(indexManager.is_index_exist(DB_NAME,
-            tableName, catalogManager.get_attribute_name(tableName, i),
-            catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立则插入索引
-        if(!indexManager.insert_index(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, i),
-              tuple.getData()[i].toString(), table->rowNum, catalogManager.get_type_for_match_IndexManager(tableName, i))){
-          cerr << "insert index error" << endl;
-          return false;
-        }
-      }
-    }
-    cout << "写入buffer成功" << endl;
-    table->rowNum += 1;
   }
-  return true;
+  // else {
+  //   int attrNum = catalog_manager.get_attribute_num(tableName);
+  //   for(int i=0; i<attrNum; i++){
+  //     if(!catalogManager.is_unique(tableName, i)) continue;//不是唯一的不可能存在索引
+  //     if(indexManager.is_index_exist(DB_NAME,
+  //           tableName, catalogManager.get_attribute_name(tableName, i),
+  //           catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立则插入索引
+  //       if(!indexManager.insert_index(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, i),
+  //             tuple.getData()[i].toString(), table->rowNum, catalogManager.get_type_for_match_IndexManager(tableName, i))){
+  //         cerr << "insert index error" << endl;
+  //         return false;
+  //       }
+  //     }
+  //   }
+  //   cout << "写入buffer成功" << endl;
+  //   table->rowNum += 1;
+  // }
+  return 1;//表示成功插入一条数据
 }
 
-bool RecordManager::insertValue(string tableName, vector<pair<FieldType, string>> tupleString) {
-  Table* table = catalogManager.get_table(tableName);  // 建议把这个函数的返回值定义成返回指针
-  if(table == NULL){
-    cerr << "没有这个表" << endl;
-  	return false;
-  }
-
+int RecordManager::insertValue(Table* table, vector<pair<NumType, string>> tupleString, int hasIndex, IndexManager& index_manager) {
+  // Table* table = catalogManager.get_table(tableName);  // 建议把这个函数的返回值定义成返回指针
+  // if(table == NULL){
+  //   cerr << "没有这个表" << endl;
+  // 	return false;
+  // }
   Tuple tuple;
   tuple.setIndex(table->rowNum);  // 表示写在表的最后
 
-  for (int i = 0; i < tupleString.size(); i++) {
+  for (int i = 0; i < table->attributeVector.size(); i++) {
+    if(table->attributeVector[i].type.get_type() != tupleString[i].first){
+      cerr << "Record: 插入数据，元组类型不符合" << endl;
+      return ERROR;
+    }
     Element e;                                   // 对于每个 Element
-    e.setType(tupleString[i].first.get_type());  // 需要知道类型
-    e.setLength(
-        tupleString[i]
-            .first
-            .get_length());  // 需要知道存储的长度，这里的长度，int，float是4，char[n]是n，具体定义参考
+    e.setType(table->attributeVector[i].type.get_type());  // 需要知道类型
+    e.setLength(table->attributeVector[i].type.get_length());  // 需要知道存储的长度，这里的长度，int，float是4，char[n]是n，具体定义参考
                              // FieldType 类
-    if (tupleString[i].first.get_type() == INT) {
+    if (e.type == INT) {
       e.setData(stoi(tupleString[i].second.c_str()));
-    } else if (tupleString[i].first.get_type() == FLOAT) {
+    } else if (e.type == FLOAT) {
       e.setData(stof(tupleString[i].second.c_str()));
     } else {
-      e.charToElement(
-          (char*)(tupleString[i]
-                      .second
-                      .c_str()));  // 根据已知的信息，将字符串转换成真实的数据
+      e.setData(tupleString[i].second);
     }
     tuple.push_back_Data(e);
   }
 
-  return insertValue(tableName, tuple);  // 调用之前写的接口
+  return insertValue(table, tuple, hasIndex, index_manager);  // 调用之前写的接口
 }
 
 bool RecordManager::isMatchTheAttribute(Table* table, Tuple* tuple) {
@@ -141,19 +135,19 @@ bool RecordManager::isMatchTheAttribute(Table* table, Tuple* tuple) {
   return true;
 }
 
-//修改，与indexManager相关，与catalogManager相关
-bool RecordManager::isConflictTheUnique(string& tableName, Tuple* tuple) {
-  int attrNum = catalogManager.get_attribute_num(tableName);
-  Table* table = catalogManager.get_table(tableName);
+//修改，与indexManager相关
+bool RecordManager::isConflictTheUnique(Table* table, Tuple* tuple, int hasIndex, IndexManager& index_manager) {
+  int attrNum = table->attributeNum;
   for(int i=0; i<attrNum; i++){
-    if(!catalogManager.is_unique(tableName, i)) continue;//不是唯一的不管
-    if(indexManager.is_index_exist(DB_NAME,
-          tableName, catalogManager.get_attribute_name(tableName, i),
-          catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立
+    if(!table->attributeVector[i].isUnique) continue;//不是唯一的不管
+    // if(indexManager.is_index_exist(DB_NAME,
+    //       tableName, catalogManager.get_attribute_name(tableName, i),
+    //       catalogManager.get_type_for_match_IndexManager(tableName, i))){//判断是否建立了索引，若建立
+    if(hasIndex > 0){//判断是否建立了索引，若建立
       vector<int> block_id;
       block_id.clear();
-      if(indexManager.find_element(DB_NAME, tableName, catalogManager.get_attribute_name(tableName, i),
-            tuple->getData()[i].toString(), block_id, catalogManager.get_type_for_match_IndexManager(tableName, i))){
+      if(index_manager.find_element(DB_NAME, table->tableName, table->attributeVector[i].attributeName, 
+            table->attributeVector[i].type, tuple->getData()[i].toString(), block_id)){
         //表示在unique的index上找到了
         return true;//表示发生了冲突
       }
@@ -195,12 +189,12 @@ Tuple RecordManager::getTupleByRowNumber(Table* table, int RowNumber) {
 }
 
 //仅允许单个条件，或者多个条件的and类型的查询操作（or是不行的，需要预处理成and）
-vector<Tuple> RecordManager::searchQuery(string tableName, vector<SelectCondition> selectConditions) {
+Result RecordManager::searchQuery(string tableName, vector<SelectCondition> selectConditions, vector<Tuple>& tuples) {
   Table* table = catalogManager.get_table(
       tableName);  //建议把这个函数的返回值定义成返回指针
   if (table == NULL) {// 这里无法判断是否有这个表
   	cerr << "没有这个表" << endl;
-  	return vector<Tuple>();
+  	return NO_SUCH_TABLE;
   }
 
   int scn = selectConditions.size();
@@ -257,7 +251,8 @@ vector<Tuple> RecordManager::searchQuery(string tableName, vector<SelectConditio
     vis[tmp] = true;
     selectWithTempTuples(tableName, selectConditions[tmp], tuples);
   }
-  return tuples;
+
+  return SUCCESS;
 }
 
 vector<int> RecordManager::selectWithIndex(string& tableName, SelectCondition& condition){

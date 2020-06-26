@@ -3,9 +3,8 @@
 #include<iostream>
 #include<string>
 #include<vector>
-#include"../catalog_manager/attribute.h"
-#include"../catalog_manager/Index.h"
-#include"../buffer/buffer.h"
+#include"Attribute.h"
+#include"buffer.h"
 
 using namespace std;
 class Table {

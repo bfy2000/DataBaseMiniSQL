@@ -1,26 +1,31 @@
 #ifndef __RECORDMANAGER_H__
 #define __RECORDMANAGER_H__
-#include "../catalog_manager/CatalogManager.h"
-#include "../catalog_manager/FieldType.h"
-#include "Table.h"
-#include "../catalog_manager/attribute.h"
-#include "base.h"
+#include "../Public/Base.h"
+#include "../Public/Attribute.h"
+#include "../Public/Tuple.h"
+#include "../Public/Element.h"
+#include "../Public/SelectCondition.h"
+#include "../Public/Table.h"
 #include "../IndexManager/IndexManager.h"
+
+#include <vector>
+#include <iostream>
+using namespace std;
 
 #define DB_NAME "db_name?"
 
 class RecordManager {
  public:
   //插入数据，可以有两种方式，并完成索引的建立（如有）
-  bool insertValue(string tableName, Tuple tuple);
-  bool insertValue(string tableName, vector<pair<FieldType, string>> tupleString);
+  int insertValue(Table* table, Tuple tuple, int hasIndex, IndexManager& index_manager);
+  int insertValue(Table* table, vector<pair<NumType, string>> tupleString, int hasIndex, IndexManager& index_manager);
   
   //删除数据行，若没有选择条件，就是删除所有数据和索引
   int deleteTuple(string tableName, vector<SelectCondition> selectConditions = vector<SelectCondition>());
   // int deleteTuple(string tableName);
 
   //通用select with conditions
-  vector<Tuple> searchQuery(string tableName, vector<SelectCondition> selectConditions);
+  Result searchQuery(string tableName, vector<SelectCondition> selectConditions, vector<Tuple>& tuples);
 
   //用于select *
   vector<Tuple> searchQuery(string tableName);
@@ -54,7 +59,7 @@ class RecordManager {
  private:
   bool judgeCondition(Tuple tuple, SelectCondition condition);
   bool isMatchTheAttribute(Table* table, Tuple* tuple);
-  bool isConflictTheUnique(string& tableName, Tuple* tuple);
+  bool isConflictTheUnique(Table* table, Tuple* tuple, int hasIndex, IndexManager& index_manager);
   bool isConflict(Tuple* tuple1, Tuple* tuple2, int index);
   Tuple charToTuple(Table* table, char* c) {
     Tuple tuple;  // 0 1234   jsaoeprnvernvjnvjdfsvkl;df
