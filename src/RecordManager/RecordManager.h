@@ -13,7 +13,7 @@
 #include <iostream>
 using namespace std;
 
-#define DB_NAME "db_name?"
+#define DB_NAME "db_name"
 
 class RecordManager {
  public:
