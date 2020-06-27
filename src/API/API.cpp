@@ -10,6 +10,9 @@
 using namespace std;
 
 //* INSERT INTO ...
+void InsertQuery::SetTableName(string tablename) {
+	insert_table_name = tablename;
+}
 
 void InsertQuery::Clear() {
 	insert_table_name = "";

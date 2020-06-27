@@ -11,3 +11,5 @@ DROP INDEX someindex;
 
 
 SELECT * FROM student;
+
+insert into student values (22,'abc','abc');

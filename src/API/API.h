@@ -26,7 +26,8 @@ class InsertQuery
 public:
 	InsertQuery(){};
 	~InsertQuery(){};
-
+	
+	void SetTableName(string tablename);
 	void Clear();		// clear all saved data
 	void Insert(string insert_val);	// insert value
 	Result Query(CatalogManager& catalog_manager, RecordManager& record_manager, IndexManager& index_manager);		// main process function

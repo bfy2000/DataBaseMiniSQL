@@ -422,6 +422,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::INSERT_RIGHT_BRACKET: {
 			if (next_word == ";") {
+				api.insert_values_query.SetTableName(tmp_insert_table);
 				api.insert_values_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
 				api.insert_values_query.Clear();
 				state_code = State::IDLE;
