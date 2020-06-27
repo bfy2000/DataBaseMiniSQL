@@ -153,7 +153,12 @@ class Element {
       memcpy(c, &m_float, length);
     } else {  //最长能够存储length个'a'
       for (int i = 0; i < length; i++) {
-        c[i] = m_char[i];
+        if (i < m_char.length()) {
+			    c[i] = m_char[i];
+		    }
+		    else {
+			    c[i] = 0;
+		    }
       }
     }
   }
