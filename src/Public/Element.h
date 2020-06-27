@@ -23,14 +23,100 @@ class Element {
                // 最大能保存字串转长度+1，因为最后一个是'\0'
   // 否则 length = 4（针对 INT 和 FLOAT）
 
-  bool operator<(Element &e);
-  bool operator==(const Element &e);
-  bool operator>(Element &e);
-  bool operator>=(Element &e);
-  bool operator<=(Element &e);
-  bool operator!=(const Element &e);
+  bool operator<(Element &e){
+	if (e.type != type) {
+		return false;
+	} if (e.type == INT) {
+		return m_int < e.m_int;
+	}
+	else if (e.type == FLOAT) {
+		return m_float < e.m_float;
+	}
+	else {
+		return m_char < e.m_char;
+	}
+	return false;
+  }
+  bool operator==(const Element &e)
+  {
+	if (e.type != type) {
+		return false;
+	} if (e.type == INT) {
+		return m_int == e.m_int;
+	}
+	else if (e.type == FLOAT) {
+		return m_float == e.m_float;
+	}
+	else {
+		return m_char == e.m_char;
+	}
+	return false;
+}
+  bool operator>(Element &e){
+	if (e.type != type) {
+		return false;
+	} if (e.type == INT) {
+		return m_int > e.m_int;
+	}
+	else if (e.type == FLOAT) {
+		return m_float > e.m_float;
+	}
+	else {
+		return m_char > e.m_char;
+	}
+	return false;
+  }
+  bool operator>=(Element &e)
+  {
+	if (e.type != type) {
+		return false;
+	} if (e.type == INT) {
+		return m_int >= e.m_int;
+	}
+	else if (e.type == FLOAT) {
+		return m_float >= e.m_float;
+	}
+	else {
+		return m_char >= e.m_char;
+	}
+}
+  bool operator<=(Element &e)
+  {
+	if (e.type != type) {
+		return false;
+	} if (e.type == INT) {
+		return m_int <= e.m_int;
+	}
+	else if (e.type == FLOAT) {
+		return m_float <= e.m_float;
+	}
+	else {
+		return m_char <= e.m_char;
+	}
+}
+  bool operator!=(const Element &e)
+  {
+	return !operator==(e);
+  }
 
-  friend std::ostream &operator<<(std::ostream &out, Element &e);
+  friend std::ostream &operator<<(std::ostream &out, Element &e)
+  {
+	switch (e.type)
+	{
+	case CHAR:
+		out << e.m_char;
+		break;        
+	case FLOAT:
+		out << e.m_float;
+		break;
+	case INT:
+		out << e.m_int;
+		break;
+	default:
+		break;
+	}
+	return out;
+}
   void setData(int i) { m_int = i; }
   void setData(float f) { m_float = f; }
   void setData(string s) { m_char = s; }
@@ -50,8 +136,12 @@ class Element {
     m_int = i;
     length = l;
   }
-  Element();
-  ~Element();
+  Element(){
+    
+  }
+  ~Element(){
+
+  }
 
   void setType(NumType t) { type = t; }
   void setLength(int l) { length = l; }
@@ -98,105 +188,6 @@ class Element {
   }
 };
 
-bool Element::operator<(Element &e)
-{
-	if (e.type != type) {
-		return false;
-	} if (e.type == INT) {
-		return m_int < e.m_int;
-	}
-	else if (e.type == FLOAT) {
-		return m_float < e.m_float;
-	}
-	else {
-		return m_char < e.m_char;
-	}
-	return false;
-}
 
-bool Element::operator==(const Element &e)
-{
-	if (e.type != type) {
-		return false;
-	} if (e.type == INT) {
-		return m_int == e.m_int;
-	}
-	else if (e.type == FLOAT) {
-		return m_float == e.m_float;
-	}
-	else {
-		return m_char == e.m_char;
-	}
-	return false;
-}
-bool Element::operator>(Element &e)
-{
-	if (e.type != type) {
-		return false;
-	} if (e.type == INT) {
-		return m_int > e.m_int;
-	}
-	else if (e.type == FLOAT) {
-		return m_float > e.m_float;
-	}
-	else {
-		return m_char > e.m_char;
-	}
-	return false;
-}
-
-bool Element::operator!=(const Element &e)
-{
-	return !operator==(e);
-}
-
-bool Element::operator>=(Element &e)
-{
-	if (e.type != type) {
-		return false;
-	} if (e.type == INT) {
-		return m_int >= e.m_int;
-	}
-	else if (e.type == FLOAT) {
-		return m_float >= e.m_float;
-	}
-	else {
-		return m_char >= e.m_char;
-	}
-}
-
-bool Element::operator<=(Element &e)
-{
-	if (e.type != type) {
-		return false;
-	} if (e.type == INT) {
-		return m_int <= e.m_int;
-	}
-	else if (e.type == FLOAT) {
-		return m_float <= e.m_float;
-	}
-	else {
-		return m_char <= e.m_char;
-	}
-}
-
-std::ostream& operator<<(std::ostream& out, Element &e)
-{
-	switch (e.type)
-	{
-	case CHAR:
-		out << e.m_char;
-		break;        
-	case FLOAT:
-		out << e.m_float;
-		break;
-	case INT:
-		out << e.m_int;
-		break;
-	default:
-		break;
-	}
-	return out;
-}
 
 #endif
