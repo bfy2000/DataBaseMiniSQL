@@ -218,7 +218,7 @@ Result WhereExpr_To_SelectCondition(CatalogManager& catalog_manager,
 	return SUCCESS;
 }
 
-Result SelectQuery::Query(CatalogManager& catalog_manager, RecordManager& record_manager) {
+Result SelectQuery::Query(CatalogManager& catalog_manager, RecordManager& record_manager, IndexManager& index_manager) {
 	//select_all = false;
 	Prompt("SELECT ...");
 
@@ -229,8 +229,23 @@ Result SelectQuery::Query(CatalogManager& catalog_manager, RecordManager& record
 		return ERROR;
 	}
 	
+	int hasIndex = 0;
+	int hasCondition = selectConditions.size();
+	for(int i=0; i<hasCondition; i++){
+		if(index_manager.is_index_exist(DB_NAME, select_table_name, where_expr_list[i].expr1, catalog_manager.get_attribute_type(select_table_name, selectConditions[i].attributeIndex))){
+			hasIndex = 1;
+			break;
+		}
+	}
+
 	vector<Tuple> tuples;
-	r = record_manager.searchQuery(select_table_name, selectConditions, tuples);
+	if(hasCondition == 0){//无条件查询
+		r = record_manager.searchQuery(catalog_manager.get_table(select_table_name), tuples);
+	} else if(hasIndex == 0){//无索引查询
+		r = record_manager.searchQueryWithoutIndex(catalog_manager.get_table(select_table_name), selectConditions, tuples);
+	} else {//有条件有索引查询
+		r = record_manager.searchQuery(catalog_manager.get_table(select_table_name), index_manager, selectConditions, tuples);
+	}
 	if(r < 0){
 		cerr << "Error code: " << r << endl;
 		return ERROR;

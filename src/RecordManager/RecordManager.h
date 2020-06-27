@@ -21,17 +21,17 @@ class RecordManager {
   int insertValue(Table* table, vector<pair<NumType, string>> tupleString, int hasIndex, IndexManager& index_manager);
   
   //删除数据行，若没有选择条件，就是删除所有数据和索引
-  int deleteTuple(string tableName, vector<SelectCondition> selectConditions = vector<SelectCondition>());
+  int deleteTuple(Table* table, IndexManager& index_manager, vector<SelectCondition> selectConditions = vector<SelectCondition>());
   // int deleteTuple(string tableName);
 
   //通用select with conditions
-  Result searchQuery(string tableName, vector<SelectCondition> selectConditions, vector<Tuple>& tuples);
+  Result searchQuery(Table* table, IndexManager& index_manager, vector<SelectCondition> selectConditions, vector<Tuple>& tuples);
 
-  //用于select *
-  vector<Tuple> searchQuery(string tableName);
+  //用于select .. from table;
+  Result searchQuery(Table* table, vector<Tuple>& tuples);
 
   //调用者可以保证查询过程没有索引
-  vector<Tuple> searchQueryWithoutIndex(string tableName, vector<SelectCondition> selectConditions);
+  Result searchQueryWithoutIndex(Table* table, vector<SelectCondition> selectConditions, vector<Tuple>& tuples);
 
   void PrintTable(Table* table) {
     for (int i = 0; i < table->attributeVector.size(); i++) {
@@ -110,8 +110,8 @@ class RecordManager {
   }
   Tuple getTupleByRowNumber(Table* table, int RowNumber);
 
-  vector<int> selectWithIndex(string& tableName, SelectCondition& condition);
-  void selectWithTempTuples(string& tableName, SelectCondition& condition, vector<Tuple>& tuples);
+  vector<int> selectWithIndex(Table* table, SelectCondition& condition, IndexManager& index_manager);
+  void selectWithTempTuples(SelectCondition& condition, vector<Tuple>& tuples);
 
   
   

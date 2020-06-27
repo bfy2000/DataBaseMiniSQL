@@ -62,7 +62,7 @@ public:
 	SelectQuery();
 	~SelectQuery();
 
-	Result Query(CatalogManager& catalog_manager, RecordManager& record_manager);
+	Result Query(CatalogManager& catalog_manager, RecordManager& record_manager, IndexManager& index_manager);
 	void Insert(string &attr);
 	void Clear();
 	void SetSelectAll();
