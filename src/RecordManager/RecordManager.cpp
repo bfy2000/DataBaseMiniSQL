@@ -67,7 +67,7 @@ int RecordManager::insertValue(Table* table, Tuple tuple, int hasIndex, IndexMan
   free(tmpChar);
   if (writeResult == false) {
     cerr << "写入buffer失败" << endl;
-    return false;
+    return ERROR;
   }
   // else {
   //   int attrNum = catalog_manager.get_attribute_num(tableName);

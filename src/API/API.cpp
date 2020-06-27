@@ -50,14 +50,34 @@ Result InsertQuery::Query(CatalogManager& catalog_manager, RecordManager& record
 	for (int i = 0; i < insert_values.size(); i++) {
 		insert_values_to_records.push_back(pair<NumType, string>(NumType(insert_values[i].given_type), insert_values[i].val));
 	}
-	int hasIndex = catalog_manager.is_index_exist();
-	int r = record_manager.insertValue(catalog_manager.get_table(insert_table_name), insert_values_to_records, hasIndex, index_manager);
-	if(r<0){
+
+	// 判断有没有index
+	int hasIndex = 0;
+	for(int i=0; i<catalog_manager.get_attribute_num(insert_table_name); i++){
+		if(catalog_manager.is_index_exist(insert_table_name, catalog_manager.get_attribute_name(insert_table_name, i)))
+			hasIndex++;
+	}
+
+	// 插入record数据
+	Table table = catalog_manager.get_table(insert_table_name);
+	int r = record_manager.insertValue(&table, insert_values_to_records, hasIndex, index_manager);
+	if(r < 0){
 		cerr << "API: 插入数据出错" << endl;
 		return ERROR;
 	}
+	if(r==1){
+		cout << "API: 插入 1 条数据" << endl;
+		catalog_manager.add_row_num(insert_table_name);
+	}
+
+	// 插入index数据
 	if(hasIndex > 0){ // 表示这个表有索引
-		index_manager.insert_index(DB_NAME, insert_table_name, attrName, fieldType, data, block_id);
+		for(int i=0; i<catalog_manager.get_attribute_num(insert_table_name); i++){
+			if(catalog_manager.is_index_exist(insert_table_name, catalog_manager.get_attribute_name(insert_table_name, i)))
+				index_manager.insert_index(DB_NAME, insert_table_name, catalog_manager.get_attribute_name(insert_table_name, i),
+				    catalog_manager.get_attribute_type(insert_table_name, i), insert_values_to_records[i].second,
+						catalog_manager.get_table(insert_table_name).rowNum);
+		}
 	}
 	return SUCCESS;
 }
@@ -104,8 +124,8 @@ void API::DropTable(string drop_table) {
 //* CREATE INDEX ...
 void API::CreateIndex(string index_name, string table_name, string attr_name) {
 	Prompt("Create Index\t" + index_name + "\t" + table_name + "\t" + attr_name);
-	catalog_manager.create_index();
-	index_manager.create_index();
+	catalog_manager.create_index(index_name, table_name, attr_name);
+	index_manager.create_index(DB_NAME, table_name, attr_name, catalog_manager.get_attribute_type(table_name, attr_name));
 }
 
 
@@ -162,7 +182,7 @@ int CreateTable::Query(CatalogManager& catalog_manager, IndexManager& index_mana
 		return ERROR;
 	}
 	for(int i=0; i<primary_list.size(); i++){//循环创建索引
-		if(catalog_manager.create_index(tmp_table_name, primary_list[i]) < 0){
+		if(catalog_manager.create_index(tmp_table_name+"_primary", tmp_table_name, primary_list[i]) < 0){
 			cerr << "API: 建立索引失败 1" << endl;
 			return ERROR;
 		}
@@ -239,12 +259,13 @@ Result SelectQuery::Query(CatalogManager& catalog_manager, RecordManager& record
 	}
 
 	vector<Tuple> tuples;
+	Table table = catalog_manager.get_table(select_table_name);
 	if(hasCondition == 0){//无条件查询
-		r = record_manager.searchQuery(catalog_manager.get_table(select_table_name), tuples);
+		r = record_manager.searchQuery(&table, tuples);
 	} else if(hasIndex == 0){//无索引查询
-		r = record_manager.searchQueryWithoutIndex(catalog_manager.get_table(select_table_name), selectConditions, tuples);
+		r = record_manager.searchQueryWithoutIndex(&table, selectConditions, tuples);
 	} else {//有条件有索引查询
-		r = record_manager.searchQuery(catalog_manager.get_table(select_table_name), index_manager, selectConditions, tuples);
+		r = record_manager.searchQuery(&table, index_manager, selectConditions, tuples);
 	}
 	if(r < 0){
 		cerr << "Error code: " << r << endl;
@@ -264,12 +285,12 @@ Result SelectQuery::Query(CatalogManager& catalog_manager, RecordManager& record
 			cout << endl;
 		}
 	} else {
-		for(int i=0; i<catalog_manager.get_table(select_table_name)->attributeNum; i++){
-			cout << catalog_manager.get_table(select_table_name)->attributeVector[i].attributeName << "\t";
+		for(int i=0; i<catalog_manager.get_table(select_table_name).attributeNum; i++){
+			cout << catalog_manager.get_table(select_table_name).attributeVector[i].attributeName << "\t";
 		}
 		cout << endl;
 		for(int i=0; i<tuples.size(); i++){
-			for(int j=0; j<catalog_manager.get_table(select_table_name)->attributeNum; j++){
+			for(int j=0; j<catalog_manager.get_table(select_table_name).attributeNum; j++){
 				cout << tuples[i].getData()[j].toString() << "\t";
 			}
 			cout << endl;
@@ -319,9 +340,9 @@ DeleteQuery::DeleteQuery() {}
 
 DeleteQuery::~DeleteQuery() {}
 
-Result DeleteQuery::Query(CatalogManager& catalog_manager, RecordManager& record_manager) {
+Result DeleteQuery::Query(CatalogManager& catalog_manager, RecordManager& record_manager, IndexManager& index_manager) {
 	Prompt("DELETE ...");
-	if(!catalog_manager.is_table_exist()){
+	if(!catalog_manager.is_table_exist(delete_table_name)){
 		cerr << "API: 没有这个表" << endl;
 	}
 	vector<SelectCondition> selectConditions;
@@ -330,7 +351,8 @@ Result DeleteQuery::Query(CatalogManager& catalog_manager, RecordManager& record
 		cerr << "API: delete Error" << endl;
 		return ERROR;
 	}
-	int res = record_manager.deleteTuple(delete_table_name, selectConditions);
+	Table table = catalog_manager.get_table(delete_table_name);
+	int res = record_manager.deleteTuple(&table, index_manager, selectConditions);
 	cout << "API: 成功删除 " << res << " 条数据" << endl;
 	return SUCCESS;
 }

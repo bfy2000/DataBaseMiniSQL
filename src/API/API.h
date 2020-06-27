@@ -48,7 +48,7 @@ public:
 	void InsertUnique();
 	void InsertPrimary(string& attr_name);
 	void Clear();
-	int Query(CatalogManager& catalog_manager);
+	int Query(CatalogManager& catalog_manager, IndexManager& index_manager);
 
 private:
 	string tmp_table_name;
@@ -86,7 +86,7 @@ public:
 	DeleteQuery();
 	~DeleteQuery();
 
-	Result Query(CatalogManager& catalog_manager, RecordManager& record_manager);
+	Result Query(CatalogManager& catalog_manager, RecordManager& record_manager, IndexManager& index_manager);
 	void Clear();
 	void SetDeleteTable(string& table);
 	void SetExpr1(string& in_expr1);

@@ -4,7 +4,7 @@
 #include <cstring>
 #include <cstdlib>
 
-#include "../catalog_manager/FieldType.h"
+#include "../Public/FieldType.h"
 
 //定义了一个元素，包含其类型以及数据的存放，通过元算符重载设计实现不同的比较符运算
 class Element {

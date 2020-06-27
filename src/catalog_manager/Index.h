@@ -24,10 +24,6 @@ public:
 		this->tableName = tableName;
 		this->attributeName = attributeName;
 	}
-	bool operator==(const Index t){
-		if(indexName==t.indexName&&tableName==t.tableName&&attributeName==t.attributeName)return true;
-		else return false;
-	}
 };
 #endif // !_INDEX_H_
 

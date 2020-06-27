@@ -10,11 +10,11 @@
 #include<exception>
 #include"../IndexManager/IndexManager.h"
 #include"Index.h"
-#include"Attribute.h"
-#include"../RecordManager/Table.h"
+#include"../Public/Attribute.h"
+#include"../Public/Table.h"
 #include"Address.h"
-#include"FieldType.h"
-#include"Public/public.h"
+#include"../Public/FieldType.h"
+#include"../Public/Base.h"
 /*Catalog Manager模块介绍：
 	整个CatalogManager类就是Catalog manager的核心
 	主要功能就是维护了两个map，存储table和index的一些模式信息
@@ -25,10 +25,17 @@
 		- 表中每个字段的定义信息，包括字段类型、是否唯一等。
 		- 数据库中所有索引的定义，包括所属表、索引建立在那个字段上等。
 */
+
+struct tableAttrName{
+	string tableName;
+	string attributeName;
+};
+
 class CatalogManager {
 private:
 	map<string, Table> tables;
 	map<string, Index> indexes;
+	map<string, string> table_attr_To_index;
 	string tableFilename = "table_catalog";
 	string indexFilename = "index_catalog";
 
@@ -222,6 +229,9 @@ public:
 	//新建一个表，将这个表push进map tables里
 	//成功：SUCCESS=0；
 	//失败：TABLE_NAME_EXSITED=-110
+	Result create_table(string tableName, vector<Attribute> attrList){
+		return create_table(Table(tableName, attrList));
+	}
 	Result create_table(Table newTable) {
 		Result res= SUCCESS;
 
@@ -247,6 +257,9 @@ public:
 	//新建一个index，将这个索引push进map indexes里，并且改变相应table的信息
 	//成功：SUCCESS
 	//失败：INDEX_NAME_EXSITED=-108 TABLE_NAME_NOEXSIT=-109
+	Result create_index(string indexName, string tableName, string attrName){
+		return create_index(Index(indexName, tableName, attrName));
+	}
 	Result create_index(Index newIndex) {
 		Result res = SUCCESS;
 		if (is_index_exist(newIndex.indexName) == true) return INDEX_NAME_EXSITED;
@@ -255,6 +268,10 @@ public:
 		tmpTable.indexVector.push_back(newIndex);
 		tmpTable.indexNum = tmpTable.indexVector.size();
 		indexes.insert(make_pair(newIndex.indexName, newIndex));
+
+		//为了方便查找
+		table_attr_To_index.insert(make_pair(newIndex.tableName+newIndex.attributeName, newIndex.indexName));
+
 		return res;
 	}
 
@@ -271,6 +288,9 @@ public:
 		//tmpTable.indexVector.remove(tmpIndex);
 		tmpTable.indexNum = tmpTable.indexVector.size();
 		indexes.erase(indexName);
+		
+		table_attr_To_index.erase(tmpIndex.tableName+tmpIndex.attributeName);
+
 		return res;
 	}
 
@@ -369,6 +389,9 @@ public:
 		else return true;
 	}
 	//判断某一个index是否存在
+	bool is_index_exist(string tableName, string attrName){
+		return is_index_exist(table_attr_To_index[tableName+attrName]);
+	}
 	bool is_index_exist(string indexName) {
 		if (indexes.find(indexName) == indexes.end()) return false;
 		else return true;

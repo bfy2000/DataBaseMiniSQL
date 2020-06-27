@@ -23,6 +23,14 @@ Buffer:         [-140,-120)
  */
 enum Result {
       TABLE_NAME_ERROR=-100, 
+      TABLE_NAME_EXSITED=-110,//创建一个新表的时候，该表名已经存在
+      TABLE_NAME_NOEXSIT=-109,//删除一个新表的时候，该表名不存在 或创建/删除一个新索引时，该索引对应的表名不存在
+      INDEX_NAME_EXSITED=-108,//创建一个新索引的时候，该索引名已经存在
+      INDEX_NAME_NOEXIST=-107,//删除或更新一个索引的时候，该索引名不存在
+      TABLE_CATALOG_FILE_READ_ERROR=-105,//table_catalog打开错误
+      INDEX_CATALOG_FILE_READ_ERROR=-104,//index_catalog打开错误
+      TABLE_CATALOG_FILE_WRITE_ERROR=-103,//table_catalog写入错误
+      INDEX_CATALOG_FILE_WRITE_ERROR=-102,//index_catalog写入错误
       ERROR=-1, 
       SUCCESS=0,
       

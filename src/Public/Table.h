@@ -5,6 +5,7 @@
 #include<vector>
 #include"Attribute.h"
 #include"buffer.h"
+#include "../catalog_manager/Index.h"
 
 using namespace std;
 class Table {
@@ -13,21 +14,19 @@ public:
 	string primaryKey;
 	int primaryKeyIndex;
 	vector<Attribute> attributeVector;
-	vector<Index>	indexVector;
+	vector<Index> indexVector;
 	//vector<Tuple>   tuples;
 	//char* data; // 用来保存所有的数据
 	//FileInfo file;
-	int indexNum;
 	int attributeNum;
+	int indexNum;
 	int rowNum; // 表示总共有多少条数据有效
 	int rowLength; // 表示每条数据的长度是多少字节
 	Table() { ; }
-	Table(string tableName, string primaryKey, vector<Attribute> attributeVector) {
+	Table(string tableName, /*string primaryKey, */vector<Attribute> attributeVector) {
 		this->tableName = tableName;
-		this->primaryKey = primaryKey;
+		// this->primaryKey = primaryKey;
 		//this->primaryKeyIndex = primaryKeyIndex;
-		this->indexVector = vector<Index>();
-		this->indexNum = 0;
 
 		this->attributeVector = attributeVector;
 		this->attributeNum = attributeVector.size();
@@ -48,10 +47,9 @@ public:
 		this->tableName = tableName;
 		this->primaryKey = primaryKey;
 		this->attributeVector = attributeVector;
+		this->attributeNum = attributeVector.size();
 		this->indexVector = indexVector;
 		this->indexNum = indexVector.size();
-		this->attributeVector = attributeVector;
-		this->attributeNum = attributeVector.size();
 		this->rowNum = rowNum;
 		for (int i = 0; i < attributeVector.size(); i++) {
 			this->rowLength += attributeVector[i].type.get_length();
