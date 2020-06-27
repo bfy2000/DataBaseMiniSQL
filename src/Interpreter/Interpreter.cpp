@@ -167,7 +167,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::DELETE_TABLE_PARSED: {
 			if (next_word == ";") {
-				api.delete_query.Query();
+				api.delete_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
 				state_code = State::IDLE;
 			}
 			else if (next_word == "WHERE" || next_word == "where") {
@@ -241,7 +241,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::DELETE_AND_PARSED;
 			}
 			else if (next_word == ";") {
-				api.delete_query.Query();
+				api.delete_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
@@ -422,7 +422,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::INSERT_RIGHT_BRACKET: {
 			if (next_word == ";") {
-				api.insert_values_query.Query(api.record_manager);
+				api.insert_values_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
 				api.insert_values_query.Clear();
 				state_code = State::IDLE;
 			}
@@ -736,7 +736,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::CREATE_TABLE_RIGHT_BRACKET: {
 			if (next_word == ";") {
-				api.create_table.Query();
+				api.create_table.Query(api.catalog_manager, api.index_manager);
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
@@ -808,7 +808,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		} break;
 		case State::SELECT_TABLE_PARSED: {
 			if (next_word == ";") {
-				api.select_query.Query(api.record_manager);
+				api.select_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
 				state_code = State::IDLE;
 			}
 			else if (next_word == "WHERE" || next_word == "where") {
@@ -882,7 +882,7 @@ void Interpreter::ReadInput(istringstream &input) {
 				state_code = State::SELECT_AND_PARSED;
 			}
 			else if (next_word == ";") {
-				api.select_query.Query(api.record_manager);
+				api.select_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {

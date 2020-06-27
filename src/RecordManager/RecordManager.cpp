@@ -202,7 +202,6 @@ Result RecordManager::searchQuery(Table* table, IndexManager& index_manager, vec
   int cntIndex = 0;
   vector<int> block_id;
   int cntNormal = 0;
-  vector<Tuple> tuples;
   while(true){//select with index
     int tmp = -1;
     for(int i=0; i<scn; i++){
