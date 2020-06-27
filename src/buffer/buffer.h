@@ -7,6 +7,9 @@
 #include<ctime>
 #include<iostream>
 #include<fstream>
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
 using namespace std;
 
 typedef struct fileInfo *FileInfo;
