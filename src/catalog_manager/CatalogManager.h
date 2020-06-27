@@ -124,7 +124,7 @@ private:
 	//将map tables中的内容写入table_catalog文件
 	Result store_table() {
 		ofstream file;
-		file.open(tableFilename, ios::out, ios::trunc);
+		file.open(tableFilename, ios::out| ios::trunc);
 		if (!file)
 		{
 			cout << "file " << tableFilename << " fail to open!" << endl;
@@ -174,7 +174,7 @@ private:
 	//将map indexes中的内容写入index_catalog文件
 	Result store_index() {
 		ofstream file;
-		file.open(tableFilename, ios::out, ios::trunc);
+		file.open(tableFilename, ios::out| ios::trunc);
 		if (!file)
 		{
 			cout << "file " << tableFilename << " fail to open!" << endl;

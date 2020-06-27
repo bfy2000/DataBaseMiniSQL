@@ -4,7 +4,7 @@
 #include<string>
 #include<vector>
 #include"Attribute.h"
-#include"buffer.h"
+#include"../buffer/buffer.h"
 #include "../catalog_manager/Index.h"
 
 using namespace std;
