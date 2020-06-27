@@ -409,7 +409,7 @@ bool RecordManager::judgeCondition(Tuple tuple, SelectCondition condition) {
   return false;
 }
 
-int RecordManager::deleteTuple(Table* table, IndexManager& index_manager, vector<SelectCondition> selectConditions = vector<SelectCondition>()) {
+int RecordManager::deleteTuple(Table* table, IndexManager& index_manager, vector<SelectCondition> selectConditions) {
   // Table* table = catalogManager.get_table(
   //     tableName);  //建议把这个函数的返回值定义成返回指针
   // if (table == NULL) {// 这里无法判断是否有这个表
