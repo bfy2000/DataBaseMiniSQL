@@ -7,6 +7,7 @@
 #include "../Public/SelectCondition.h"
 #include "../Public/Table.h"
 #include "../IndexManager/IndexManager.h"
+#include <algorithm>
 
 #include <vector>
 #include <iostream>
