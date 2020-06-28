@@ -62,7 +62,7 @@ int RecordManager::insertValue(Table* table, Tuple tuple, int hasIndex, IndexMan
 
   char* tmpChar = (char*)malloc((table->rowLength + 2) * sizeof(char));
   tupleToChar(tuple, tmpChar);
-  bool writeResult = writeToIndex(table->tableName, table->rowNum, tmpChar,
+  bool writeResult = writeToIndex(table->tableName, table->rowNum*table->rowLength, tmpChar,
                                   table->rowLength, DB_NAME, 0);
   free(tmpChar);
   if (writeResult == false) {
@@ -443,7 +443,7 @@ int RecordManager::deleteTuple(Table* table, IndexManager& index_manager, vector
     Tuple tuple = searchResult[i];
     char* tmpChar = (char*)malloc(sizeof(char));
     *tmpChar = '0';
-    bool writeResult = writeToIndex(table->tableName, tuple.getIndex(), tmpChar, 1,
+    bool writeResult = writeToIndex(table->tableName, tuple.getIndex()*table->rowLength, tmpChar, 1,
                                     DB_NAME, 0);  //修改最前面的删除标记
     free(tmpChar);
     if (writeResult == false) {
