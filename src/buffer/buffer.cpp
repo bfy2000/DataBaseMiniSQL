@@ -55,7 +55,7 @@ BlockInfo findBlock()
 			resblock->charNum = 0;
 			resblock->dirtyBit = 0;
 			resblock->file = nullptr;
-			resblock->isfree = 1;
+			resblock->isfree = 0;
 			resblock->lock = 0;
 			resblock->next = nullptr;
 			resblock->cBlock = new char[BLOCK_SIZE];
@@ -77,6 +77,8 @@ BlockInfo findBlock()
 			{
 				time = blockptr->call_times;
 				resblock = blockptr;
+				if(blockptr->dirtyBit==1)
+					write_block_to_disk("db_name",blockptr);
 			}
 			blockptr = blockptr->next;
 		}
@@ -88,10 +90,13 @@ BlockInfo findBlock()
 
 }
 
-//在filelist中找一个文件
+//在filelist中找一个文件，没有的话就打开
 FileInfo get_file_info(string fileName, int fileType)
 {
-	if (!filelist)return nullptr;
+	if (!filelist)
+	{
+
+	}
 	FileInfo fileptr = filelist;
 
 	//找文件
@@ -238,10 +243,11 @@ void write_block_to_disk(string db_name, BlockInfo block)
 //从文件中读取某个块
 BlockInfo get_block_info(string db_name, string table_name, int file_type, int BlockNum)
 {
-	
+	cout<<db_name<<endl;
 	FileInfo fileptr = get_file_info(table_name, file_type);
 	if (!fileptr)
 	{
+		cout<<table_name<<endl;
 		cout << "get_block_info::No such file!" << endl;
 		return nullptr;//没找到对应文件
 	}
@@ -376,14 +382,14 @@ void write_to_block(BlockInfo block, char to_write[])
 
 void add_to_block(BlockInfo block, char to_write[])
 {
-	if (block->charNum == 0)
+	if (strlen(block->cBlock) == 0)
 	{
 		write_to_block(block, to_write);
 		return;
 	}
 
-	block->charNum += strlen(to_write);
 	strcat_s(block->cBlock, BLOCK_SIZE, to_write);
+	block->charNum = strlen(block->cBlock);
 }
 
 
@@ -397,6 +403,7 @@ bool readData(string fileName, string db_name, int index, char to_read[], int& l
 	if (!block)
 	{
 		//返回空字符串和false
+		cout<<"error::readData"<<endl;//test usage
 		strcpy_s(to_read, 5, "");
 		return false;
 	}
@@ -414,16 +421,24 @@ bool readData(string fileName, string db_name, int index, char to_read[], int& l
 }
 
 //把to_write[]数据的length长度的数据，写入从block开始的第index个字节上，注意把后面的数据后移，防止覆盖，如果index<0那么表示将数据插入最后
-bool writeToIndex(string fileName, int index, char* to_write, int length, string db_name, int filetype)
+/*bool writeToIndex(string fileName, int index, char* to_write, int length, string db_name, int filetype)
 {
 	int blocknum = index/BLOCK_SIZE;
-	BlockInfo block = get_block_info(db_name, fileName, filetype, blocknum);
+	//BlockInfo block = get_block_info(db_name, fileName, filetype, blocknum);
+	BlockInfo block=findBlock();
 	block->dirtyBit = 1;
 	if (!block)//写入失败
+	{
+		cout<<"error::writetoIndex"<<endl;
 		return false;
-	FileInfo file = block->file;
-	int rec_len = file->recordLength;//单条记录长度
+	}
+
+	FileInfo tmpfile = new struct fileInfo;//开个临时文件
+	block->file=tmpfile;
+
+	int rec_len = recordLength;//单条记录长度
 	int rec_tot = length / rec_len;//要插入的记录数
+
 	int rec_avai = (BLOCK_SIZE - block->charNum) / rec_len;//要求块剩余能插入记录的空间
 	if (length > BLOCK_SIZE - strlen(block->cBlock))//对应块写不下，找后面的某个块继续写进去
 	{
@@ -440,6 +455,12 @@ bool writeToIndex(string fileName, int index, char* to_write, int length, string
 				break;
 			blocknum++;//看下一块
 			block = get_block_info(db_name, fileName, filetype, blocknum);
+			if(!block)
+			{
+				cout<<"error::writrtoINDEX"<<endl;
+				return false;
+			}
+				
 			block->dirtyBit = 1;
 			rec_avai = (BLOCK_SIZE - block->charNum)/rec_len;//计算在当前块需要写入的记录条数
 			if (rec_avai > rec_tot)
@@ -448,5 +469,50 @@ bool writeToIndex(string fileName, int index, char* to_write, int length, string
 	}
 	else
 		add_to_block(block, to_write);
+	return true;
+}*/
+bool writeToIndex(string fileName, int index, char *to_write, int length, string db_name, int filetype)
+{
+	cout << to_write<<endl;
+	int blocknum = index / BLOCK_SIZE;
+	BlockInfo block = findBlock();
+
+	if (!block) //写入失败
+	{
+		cout << "error::writetoIndex" << endl;
+		return false;
+	}
+
+	FileInfo tmpfile = new struct fileInfo; //开个临时文件
+	tmpfile->fileName=fileName;
+	tmpfile->type=0;
+
+	block->file = tmpfile;
+	block->dirtyBit = 1;
+	read_block_from_disk(tmpfile, db_name, blocknum, block);
+
+	
+	if (length > BLOCK_SIZE - block->charNum)		//对应块写不下，找后面的某个块继续写进去
+	{
+		int offset_w = 0; //字符串中的偏移量
+
+		while (1)
+		{
+
+			blocknum++; //看下一块
+			read_block_from_disk(tmpfile, db_name, blocknum, block);
+
+			if(length <= BLOCK_SIZE - block->charNum)
+			{
+				add_to_block(block, to_write);
+				block->dirtyBit = 1;
+				break;
+			}
+
+		}
+	}
+	else
+		add_to_block(block, to_write);
+	write_block_to_disk(db_name,block);
 	return true;
 }
