@@ -434,6 +434,9 @@ bool readData(string fileName, string db_name, int index, char to_read[], int &l
 	}
 
 	memcpy_s(to_read, length + 1, block->cBlock + offset_b, length);
+	delete tmpfile;
+	delete block->cBlock;
+	delete block;
 	return flag;
 }
 
@@ -539,7 +542,7 @@ bool writeToIndex(string fileName, int index, char *to_write, int length, string
 
 	block->dirtyBit=1;
 	write_block_to_disk(db_name, block);
-
+	delete block->cBlock;
 	delete block;
 	delete tmpfile;
 	return true;

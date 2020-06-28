@@ -2,6 +2,7 @@
 #include <sstream>
 #include "Utils/Utils.h"
 #include "./Interpreter/Interpreter.h"
+#include <ctime>
 
 using namespace std;
 
@@ -11,6 +12,9 @@ int main(int argc, char *argv[]) {
     
     catalogManager.initial_catalog();
 
+    clock_t start_t, end_t;
+
+    
     switch (argc)
     {
     case 1: {
@@ -27,6 +31,7 @@ int main(int argc, char *argv[]) {
                 cout << "    ";
 
             getline(cin, input_string);
+            start_t = clock();
 
             bool rst = interpreter.ProcessInput(input_string);
             //cout << input_string << endl;
@@ -38,6 +43,9 @@ int main(int argc, char *argv[]) {
             else {
                 interpreter.SetState(State::IDLE);
             }
+
+            end_t=clock();
+            cout<<endl<<"runtime = "<<(double)(end_t-start_t)<<endl;
         }
 
         Prompt("\n\t*** Bye ***\n\n", green);
