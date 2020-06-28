@@ -201,6 +201,15 @@ private:
 	
 
 public:
+	string getTableNameByIndexName(string indexName){
+		return indexes[indexName].tableName;
+	}
+	string getAttrNameByIndexName(string indexName){
+		return indexes[indexName].attributeName;
+	}
+	FieldType getTypeByIndexName(string indexName){
+		return get_attribute_type(indexes[indexName].tableName, indexes[indexName].attributeName);
+	}
 	//——————————————————————————————————————————
 	//一些比较常用的函数：
 

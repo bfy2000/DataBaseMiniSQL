@@ -113,8 +113,16 @@ public:
 	IndexManager index_manager;
 	CatalogManager catalog_manager;
 
-	void DropIndex(string drop_index);
-	void DropTable(string drop_table);
+		void DropIndex(string drop_index){
+		DropIndex(drop_index, catalog_manager, index_manager);
+	}
+	void DropIndex(string drop_index, CatalogManager& catalog_manager, IndexManager& index_manager);
+
+	void DropTable(string drop_table){
+		DropTable(drop_table, catalog_manager);
+	}
+	void DropTable(string drop_table, CatalogManager& catalog_manager);
+
 	void CreateIndex(string index_name, string table_name, string attr_name);
 };
 

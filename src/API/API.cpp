@@ -97,8 +97,17 @@ Result InsertQuery::Query(CatalogManager& catalog_manager, RecordManager& record
 
 
 //* DROP INDEX ...
-void API::DropIndex(string drop_index) {
+void API::DropIndex(string drop_index, CatalogManager& catalog_manager, IndexManager& index_manager) {
 	Prompt("Drop Index");
+	if(catalog_manager.is_index_exist(drop_index) == false){
+		cerr << "API: 没有这个index" << endl;
+		return;
+	}
+	else{
+		index_manager.drop_index(DB_NAME, catalog_manager.getTableNameByIndexName(drop_index),
+				catalog_manager.getAttrNameByIndexName(drop_index), catalog_manager.getTypeByIndexName(drop_index));
+		catalog_manager.drop_index(drop_index);
+	}
 }
 
 
@@ -110,8 +119,14 @@ void API::DropIndex(string drop_index) {
 
 
 //* DROP TABLE ...
-void API::DropTable(string drop_table) {
+void API::DropTable(string drop_table, CatalogManager& catalog_manager) {
 	Prompt("Drop Table");
+	Table table = catalog_manager.get_table(drop_table);
+	for(int i=0; i<table.indexNum; i++){
+		index_manager.drop_index(DB_NAME, drop_table, catalog_manager.getAttrNameByIndexName(table.indexVector[i].indexName),
+				catalog_manager.getTypeByIndexName(table.indexVector[i].indexName));
+	}
+	catalog_manager.drop_table(drop_table);
 }
 
 
