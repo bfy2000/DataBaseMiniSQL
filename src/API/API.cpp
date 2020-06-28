@@ -79,7 +79,7 @@ Result InsertQuery::Query(CatalogManager& catalog_manager, RecordManager& record
 			if(catalog_manager.is_index_exist(insert_table_name, catalog_manager.get_attribute_name(insert_table_name, i)))
 				index_manager.insert_index(DB_NAME, insert_table_name, catalog_manager.get_attribute_name(insert_table_name, i),
 				    catalog_manager.get_attribute_type(insert_table_name, i), insert_values_to_records[i].second,
-						catalog_manager.get_table(insert_table_name).rowNum);
+						catalog_manager.get_table(insert_table_name).rowNum-1);
 		}
 	}
 	return SUCCESS;
