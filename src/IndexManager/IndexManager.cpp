@@ -68,14 +68,15 @@ Result IndexManager::create_index(const std::string &db_name, const std::string 
 	if (tmp == nullptr) {
 		add_file_to_list(table_name, 1, 4092, 4092);
 	}
-
+	
 	BlockId bpt = GetEmptyBlockId(db_name, table_name);//get blockid for tree
 	char* block = getBlock(db_name, table_name, bpt);
-	*((int*)block) = -1;
-	*((int*)(block + sizeof(int))) = -1;
+	*((char*)block) = 3;
+	*((int*)(block+sizeof(char))) = -1;
+	*((int*)(block + sizeof(int)+sizeof(char))) = -1;
 	if (is_tree_already_exist(filename + "_" + attribute_name, type)) {
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return BPT_ALREADY_EXSIST;
 	}
 	else {
@@ -96,13 +97,12 @@ Result IndexManager::create_index(const std::string &db_name, const std::string 
 			}
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return WRONG_TYPE;
 		}
 	}
-	FileInfo fi = get_file_info(table_name, 1);
-	closefile(db_name, fi);
+
 	return SUCCESS;
 }
 
@@ -154,35 +154,37 @@ Result IndexManager::find_element(const std::string &db_name, const std::string 
 	}
 	if (!is_tree_already_exist(filename + "_" + attribute_name, type))
 	{
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return NO_INDEX;
 		//从硬盘中加载
 		//readintree(db_name, table_name, attribute_name, type);
 	}
 	if (type.get_type() == INT) {
 		block_id.push_back(int_index[filename + "_" + attribute_name]->Search(atoi(data.c_str())));
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		if (block_id[0] == -1)return NO_SUCH_ELEMENT;
 		return SUCCESS;
 	}
 	else if (type.get_type() == FLOAT) {
 		block_id.push_back(float_index[filename + "_" + attribute_name]->Search(atof(data.c_str())));
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		if (block_id[0] == -1)return NO_SUCH_ELEMENT;
 		return SUCCESS;
 	}
 	else if (type.get_type() == CHAR) {
 		block_id.push_back(string_index[filename + "_" + attribute_name]->Search(data));
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		string_index[filename + "_" + attribute_name]->OutputTree();
+
+		 
+		 
 		if (block_id[0] == -1)return NO_SUCH_ELEMENT;
 		return SUCCESS;
 	}
-	FileInfo fi = get_file_info(table_name, 1);
-	closefile(db_name, fi);
+	 
+	 
 	return WRONG_TYPE;
 }
 Result IndexManager::insert_index(const std::string &db_name, const std::string &table_name,
@@ -194,50 +196,50 @@ Result IndexManager::insert_index(const std::string &db_name, const std::string 
 	}
 	if (!is_tree_already_exist(filename + "_" + attribute_name, type))
 	{
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return NO_INDEX;
 		//从硬盘中加载
 		//readintree(db_name, table_name, attribute_name, type);
 	}
 	if (type.get_type() == INT) {
 		if (int_index[filename + "_" + attribute_name]->InsertElement(atoi(data.c_str()), block_id)) {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return SUCCESS;
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return INSERT_FAIL;
 		}
 	}
 	else if (type.get_type() == FLOAT) {
 		if (float_index[filename + "_" + attribute_name]->InsertElement(atof(data.c_str()), block_id)) {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return SUCCESS;
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return INSERT_FAIL;
 		}
 	}
 	else if (type.get_type() == CHAR) {
 		if (string_index[filename + "_" + attribute_name]->InsertElement(data, block_id)) {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return SUCCESS;
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return INSERT_FAIL;
 		}
 	}
-	FileInfo fi = get_file_info(table_name, 1);
-	closefile(db_name, fi);
+	 
+	 
 	return WRONG_TYPE;
 }
 Result IndexManager::delete_index(const std::string &db_name, const std::string &table_name,
@@ -249,50 +251,50 @@ Result IndexManager::delete_index(const std::string &db_name, const std::string 
 	}
 	if (!is_tree_already_exist(filename + "_" + attribute_name, type))
 	{
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return NO_INDEX;
 		//从硬盘中加载
 		//readintree(db_name, table_name, attribute_name, type);
 	}
 	if (type.get_type() == INT) {
 		if (int_index[filename + "_" + attribute_name]->DeleteElement(atoi(data.c_str()))) {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return SUCCESS;
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return DELETE_FAIL;
 		}
 	}
 	else if (type.get_type() == FLOAT) {
 		if (float_index[filename + "_" + attribute_name]->DeleteElement(atof(data.c_str()))) {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return SUCCESS;
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return DELETE_FAIL;
 		}
 	}
 	else if (type.get_type() == CHAR) {
 		if (string_index[filename + "_" + attribute_name]->DeleteElement(data)) {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return SUCCESS;
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return DELETE_FAIL;
 		}
 	}
-	FileInfo fi = get_file_info(table_name, 1);
-	closefile(db_name, fi);
+	 
+	 
 	return WRONG_TYPE;
 }
 Result IndexManager::drop_index(const std::string db_name, const std::string &table_name, const std::string &attribute_name, FieldType type) {
@@ -333,17 +335,17 @@ Result IndexManager::drop_index(const std::string db_name, const std::string &ta
 			string_index_length.erase(filename + "_" + attribute_name);
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return WRONG_TYPE;
 		}
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return SUCCESS;
 	}
 	else {
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return NO_INDEX;
 	}
 	/*fstream _file;
@@ -361,8 +363,8 @@ Result IndexManager::greater_than(const std::string &db_name, const std::string 
 	}
 	if (!is_tree_already_exist(filename + "_" + attribute_name, type))
 	{
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return NO_INDEX;
 		//从硬盘中加载
 		//readintree(db_name, table_name, attribute_name, type);
@@ -381,12 +383,12 @@ Result IndexManager::greater_than(const std::string &db_name, const std::string 
 			string_index[filename]->greater_than(data, block_id);
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return WRONG_TYPE;
 		}
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return SUCCESS;
 	}
 	else {
@@ -412,12 +414,12 @@ Result IndexManager::greater_than(const std::string &db_name, const std::string 
 			string_index[filename]->greater_than(data, block_id);
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return WRONG_TYPE;
 		}
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return SUCCESS;
 	}
 
@@ -432,8 +434,8 @@ Result IndexManager::less_than(const std::string &db_name, const std::string &ta
 	}
 	if (!is_tree_already_exist(filename + "_" + attribute_name, type))
 	{
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return NO_INDEX;
 		//从硬盘中加载
 		//readintree(db_name, table_name, attribute_name, type);
@@ -452,12 +454,12 @@ Result IndexManager::less_than(const std::string &db_name, const std::string &ta
 			string_index[filename]->less_than(data, block_id);
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return WRONG_TYPE;
 		}
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return SUCCESS;
 	}
 	else {
@@ -483,12 +485,12 @@ Result IndexManager::less_than(const std::string &db_name, const std::string &ta
 			}
 		}
 		else {
-			FileInfo fi = get_file_info(table_name, 1);
-			closefile(db_name, fi);
+			 
+			 
 			return WRONG_TYPE;
 		}
-		FileInfo fi = get_file_info(table_name, 1);
-		closefile(db_name, fi);
+		 
+		 
 		return SUCCESS;
 	}
 
