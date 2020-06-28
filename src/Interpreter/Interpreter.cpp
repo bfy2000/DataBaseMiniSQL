@@ -888,7 +888,7 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 			else if (next_word == ";") {
 				api.select_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
-				api.select_query.clear();
+				api.select_query.Clear();
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
