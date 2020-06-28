@@ -99,6 +99,11 @@ int RecordManager::insertValue(Table* table, vector<pair<NumType, string>> tuple
   tuple.setIndex(table->rowNum);  // 表示写在表的最后
 
   for (int i = 0; i < table->attributeVector.size(); i++) {
+    if (table->attributeVector[i].type.get_type() == FLOAT && tupleString[i].first == INT)
+    {
+      tupleString[i].first = FLOAT;
+      tupleString[i].second += ".0";
+    }
     if(table->attributeVector[i].type.get_type() != tupleString[i].first){
       cerr << "Record: 插入数据，元组类型不符合" << endl;
       return ERROR;
