@@ -255,7 +255,7 @@ public:
 	Result drop_table(string tableName) {
 		Result res = SUCCESS;
 		if (is_table_exist(tableName) == false) return TABLE_NAME_NOEXSIT;
-		Table tmpTable = tables[tableName];
+		Table& tmpTable = tables[tableName];
 		for (int i = 0; i < tmpTable.indexVector.size(); i++) {
 			indexes.erase(tmpTable.indexVector[i].indexName);
 		}
@@ -273,7 +273,7 @@ public:
 		Result res = SUCCESS;
 		if (is_index_exist(newIndex.indexName) == true) return INDEX_NAME_EXSITED;
 		if (is_table_exist(newIndex.tableName) == false) return TABLE_NAME_NOEXSIT;
-		Table tmpTable = tables[newIndex.tableName];
+		Table& tmpTable = tables[newIndex.tableName];
 		tmpTable.indexVector.push_back(newIndex);
 		tmpTable.indexNum = tmpTable.indexVector.size();
 		indexes.insert(make_pair(newIndex.indexName, newIndex));
@@ -292,7 +292,7 @@ public:
 		if (is_index_exist(indexName) == false) return INDEX_NAME_NOEXIST;
 		Index tmpIndex = get_index(indexName);
 		if(is_table_exist(tmpIndex.tableName) == false) return TABLE_NAME_NOEXSIT;
-		Table tmpTable = tables[tmpIndex.tableName];
+		Table& tmpTable = tables[tmpIndex.tableName];
 		remove(tmpTable.indexVector.begin(), tmpTable.indexVector.end(), tmpIndex);
 		//tmpTable.indexVector.remove(tmpIndex);
 		tmpTable.indexNum = tmpTable.indexVector.size();
