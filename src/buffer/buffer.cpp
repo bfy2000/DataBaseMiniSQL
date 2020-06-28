@@ -5,40 +5,40 @@
 
 string rootdir = ".\\minisql\\";
 
-FileInfo filelist = nullptr;//文件链表
-int fileNum = 0;//文件数
-int global_block_num = 0;//现有block数量
+FileInfo filelist = nullptr; //文件链表
+int fileNum = 0;			 //文件数
+int global_block_num = 0;	 //现有block数量
 
 //寻找空块
 BlockInfo findBlock()
 {
-	
+
 	FileInfo fileptr = filelist;
 	BlockInfo resblock = nullptr;
 	while (fileptr)
 	{
 		BlockInfo blockptr = fileptr->firstBlock;
-		if (fileptr->freeNum == 0)//这个文件下面没有空块了
+		if (fileptr->freeNum == 0) //这个文件下面没有空块了
 		{
 			fileptr = fileptr->next;
 			continue;
 		}
-			
-		while (blockptr)//这个文件下面有空块
+
+		while (blockptr) //这个文件下面有空块
 		{
-			if (blockptr->isfree)//找到一个空块
+			if (blockptr->isfree) //找到一个空块
 			{
 				resblock = blockptr;
-				fileptr->freeNum--;//空块数量-1
+				fileptr->freeNum--; //空块数量-1
 				blockptr->isfree = false;
-				remove_block_from_file(resblock);//把这个块从原文件中移出
+				remove_block_from_file(resblock); //把这个块从原文件中移出
 				break;
 			}
 			blockptr = blockptr->next;
 		}
 		if (!resblock)
 			cout << "findBlock::freeNum record may be wrong." << endl;
-		else 
+		else
 			return resblock;
 
 		fileptr = fileptr->next;
@@ -48,7 +48,7 @@ BlockInfo findBlock()
 	if (global_block_num < MAX_BLOCK)
 	{
 		resblock = new struct blockInfo;
-		
+
 		if (resblock)
 		{
 			resblock->call_times = 0;
@@ -59,7 +59,7 @@ BlockInfo findBlock()
 			resblock->lock = 0;
 			resblock->next = nullptr;
 			resblock->cBlock = new char[BLOCK_SIZE];
-			memset(resblock->cBlock, 0, BLOCK_SIZE * sizeof(char));//初始化
+			memset(resblock->cBlock, 0, BLOCK_SIZE * sizeof(char)); //初始化
 			if (resblock->cBlock)
 				return resblock;
 		}
@@ -73,12 +73,12 @@ BlockInfo findBlock()
 		BlockInfo blockptr = fileptr->firstBlock;
 		while (blockptr)
 		{
-			if (blockptr->call_times < time && !blockptr->lock)//用LRU，没被锁的可以替换
+			if (blockptr->call_times < time && !blockptr->lock) //用LRU，没被锁的可以替换
 			{
 				time = blockptr->call_times;
 				resblock = blockptr;
-				if(blockptr->dirtyBit==1)
-					write_block_to_disk("db_name",blockptr);
+				if (blockptr->dirtyBit == 1)
+					write_block_to_disk("db_name", blockptr);
 			}
 			blockptr = blockptr->next;
 		}
@@ -87,16 +87,11 @@ BlockInfo findBlock()
 	resblock->call_times = 1;
 	remove_block_from_file(resblock);
 	return resblock;
-
 }
 
 //在filelist中找一个文件，没有的话就打开
 FileInfo get_file_info(string fileName, int fileType)
 {
-	if (!filelist)
-	{
-
-	}
 	FileInfo fileptr = filelist;
 
 	//找文件
@@ -107,8 +102,11 @@ FileInfo get_file_info(string fileName, int fileType)
 		fileptr = fileptr->next;
 	}
 
+	add_file_to_list(fileName,fileType,20,20);
+
+
 	//文件不存在
-	cout << "get_file_info::No such file" << endl;
+	//cout << "get_file_info::No such file" << endl;
 	return nullptr;
 }
 
@@ -119,7 +117,7 @@ BlockInfo get_block_in_file(FileInfo file, int blockNum)
 		return nullptr;
 
 	BlockInfo blockptr = file->firstBlock;
-	
+
 	while (blockptr)
 	{
 		if (blockptr->blockNum == blockNum)
@@ -137,20 +135,19 @@ void remove_block_from_file(BlockInfo block_to_remove)
 	BlockInfo last_block = nullptr;
 	BlockInfo blockptr = file->firstBlock;
 
-	while (blockptr)//在该文件中寻找对应块
+	while (blockptr) //在该文件中寻找对应块
 	{
 		if (blockptr->next == block_to_remove)
 			break;
 		last_block = blockptr;
 		blockptr = blockptr->next;
 	}
-	if (blockptr)//找到了
+	if (blockptr) //找到了
 	{
 		if (last_block)
 			file->firstBlock = blockptr->next;
 		else
 			last_block->next = blockptr->next;
-
 	}
 	else
 		cout << "remove_block_from_file::Cannot find this block" << endl;
@@ -158,7 +155,7 @@ void remove_block_from_file(BlockInfo block_to_remove)
 }
 
 //缓冲区操作：把一个块挂到文件上
-void add_block_to_file(BlockInfo block,FileInfo file)
+void add_block_to_file(BlockInfo block, FileInfo file)
 {
 	block->file = file;
 	block->next = file->firstBlock;
@@ -169,7 +166,7 @@ void add_block_to_file(BlockInfo block,FileInfo file)
 //从磁盘读一个块
 BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, BlockInfo tmpblock)
 {
-	if (!tmpblock)//没提供块，先找一个
+	if (!tmpblock) //没提供块，先找一个
 	{
 		tmpblock = findBlock();
 		tmpblock->isfree = 0;
@@ -177,13 +174,13 @@ BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, Bloc
 	tmpblock->blockNum = blocknum;
 	//打开文件
 	string filepath = rootdir + db_name;
-	if (file->type == 0)	//表
+	if (file->type == 0) //表
 		filepath += "\\table\\";
-	else					//索引
+	else //索引
 		filepath += "\\index\\";
 	filepath += file->fileName + ".txt";
 
-	fstream infile(filepath,ios::in|ios::binary);
+	fstream infile(filepath, ios::in | ios::binary);
 	//infile.open(filepath);
 
 	if (!infile.is_open())
@@ -195,16 +192,17 @@ BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, Bloc
 	//读取数据
 	int offset = BLOCK_SIZE * (blocknum);
 	infile.seekg(offset, ios::beg);
-	if(!tmpblock->cBlock)
+	if (!tmpblock->cBlock)
 		tmpblock->cBlock = new char[BLOCK_SIZE];
 
 	//需要先清空，否则会被自动填充屯屯屯
 	memset(tmpblock->cBlock, 0, BLOCK_SIZE * sizeof(char));
 
-	infile.read(tmpblock->cBlock,BLOCK_SIZE);
+	infile.read(tmpblock->cBlock, BLOCK_SIZE);
 	infile.close();
 
 	tmpblock->charNum = strlen(tmpblock->cBlock);
+	tmpblock->blockNum=blocknum;
 
 	return tmpblock;
 }
@@ -212,7 +210,7 @@ BlockInfo read_block_from_disk(FileInfo file, string db_name, int blocknum, Bloc
 //把一个块写到磁盘
 void write_block_to_disk(string db_name, BlockInfo block)
 {
-	if (!block->dirtyBit || block->isfree || block->charNum == 0)
+	if (!block->dirtyBit || block->isfree )
 		return;
 
 	FileInfo file = block->file;
@@ -224,51 +222,49 @@ void write_block_to_disk(string db_name, BlockInfo block)
 
 	//打开文件
 	string filepath = rootdir + db_name;
-	if (file->type == 0)	//表
+	if (file->type == 0) //表
 		filepath += "\\table\\";
-	else					//索引
+	else //索引
 		filepath += "\\index\\";
 	filepath += file->fileName + ".txt";
 
 	//读取数据
 	int offset = BLOCK_SIZE * (block->blockNum);
-	fstream ofile(filepath,ios::out | ios::in | ios::binary);
+	fstream ofile(filepath, ios::out | ios::in | ios::binary);
 	ofile.seekp(offset, ios::beg);
 	string str(block->cBlock);
 	ofile.write(block->cBlock, BLOCK_SIZE);
 	ofile.close();
-
 }
 
 //从文件中读取某个块
 BlockInfo get_block_info(string db_name, string table_name, int file_type, int BlockNum)
 {
-	cout<<db_name<<endl;
+	cout << db_name << endl;
 	FileInfo fileptr = get_file_info(table_name, file_type);
 	if (!fileptr)
 	{
-		cout<<table_name<<endl;
+		cout << table_name << endl;
 		cout << "get_block_info::No such file!" << endl;
-		return nullptr;//没找到对应文件
+		return nullptr; //没找到对应文件
 	}
-	
 
 	BlockInfo blockptr = get_block_in_file(fileptr, BlockNum);
-	
-	if (blockptr && blockptr->lock)//块是否被锁住
+
+	if (blockptr && blockptr->lock) //块是否被锁住
 	{
 		cout << "get_block_info::The block has been locked" << endl;
 		return blockptr;
 	}
 
-	if (blockptr)//找到了blocknum的块
+	if (blockptr) //找到了blocknum的块
 	{
-		if (!blockptr->isfree || strlen(blockptr->cBlock) == 0)//不是空块，直接返回
+		if (!blockptr->isfree || strlen(blockptr->cBlock) == 0) //不是空块，直接返回
 		{
 			blockptr->call_times++;
 			return blockptr;
 		}
-		else//是空块，先从磁盘中读取出来再返回
+		else //是空块，先从磁盘中读取出来再返回
 		{
 			blockptr = read_block_from_disk(fileptr, db_name, BlockNum, blockptr);
 			blockptr->call_times = 1;
@@ -276,7 +272,6 @@ BlockInfo get_block_info(string db_name, string table_name, int file_type, int B
 			return blockptr;
 		}
 	}
-
 
 	//文件在buffer中没有编号为blocknum的块
 	blockptr = read_block_from_disk(fileptr, db_name, BlockNum, nullptr);
@@ -310,7 +305,7 @@ void closefile(string db_name, FileInfo file)
 
 	//从文件表中删除
 	FileInfo fileptr = filelist;
-	if (fileptr == file)//filelist头结点
+	if (fileptr == file) //filelist头结点
 	{
 		filelist = file->next;
 		delete file;
@@ -374,13 +369,18 @@ void unlock_block(BlockInfo block)
 	block->lock = 0;
 }
 
-void write_to_block(BlockInfo block, char to_write[])
+void write_to_block(BlockInfo block, char to_write[]) //两个覆写
 {
 	block->charNum = strlen(to_write);
 	strcpy_s(block->cBlock, BLOCK_SIZE, to_write);
 }
+void write_to_block(BlockInfo block, char to_write[], int length)
+{
+	block->charNum = length;
+	strncpy_s(block->cBlock, BLOCK_SIZE, to_write, length);
+}
 
-void add_to_block(BlockInfo block, char to_write[])
+void add_to_block(BlockInfo block, char to_write[]) //两个添加
 {
 	if (strlen(block->cBlock) == 0)
 	{
@@ -392,32 +392,48 @@ void add_to_block(BlockInfo block, char to_write[])
 	block->charNum = strlen(block->cBlock);
 }
 
+void add_to_block(BlockInfo block, char to_write[], int length)
+{
+	if (block->charNum == 0)
+	{
+		write_to_block(block, to_write, length);
+		return;
+	}
 
-bool readData(string fileName, string db_name, int index, char to_read[], int& length,int filetype)
+	memcpy_s(block->cBlock, BLOCK_SIZE, to_write, length);
+	block->charNum += length;
+}
+
+bool readData(string fileName, string db_name, int index, char to_read[], int &length, int filetype)
 {
 	int blocknum = index / BLOCK_SIZE;
 	int offset_b = index % BLOCK_SIZE;
-	
-	BlockInfo block = get_block_info(db_name, fileName, filetype, blocknum);
+
+	FileInfo tmpfile = new struct fileInfo;
+	tmpfile->fileName=fileName;
+	BlockInfo block=findBlock();
+	block->blockNum=blocknum;
+	block->file=tmpfile;
+
+	read_block_from_disk(tmpfile,"db_name",blocknum,block);
 	//没有这个块
 	if (!block)
 	{
 		//返回空字符串和false
-		cout<<"error::readData"<<endl;//test usage
+		cout << "error::readData" << endl; //test usage
 		strcpy_s(to_read, 5, "");
 		return false;
 	}
 	bool flag = true;
 	//长度不足，改短
-	if (strlen(block->cBlock) < offset_b + length)
+	if (offset_b + length>BLOCK_SIZE)
 	{
-		length = strlen(block->cBlock) - index;
+		length = BLOCK_SIZE - offset_b;
 		flag = false;
 	}
-		
-	strncpy_s(to_read, length+1, block->cBlock + offset_b, length);
-	return flag;
 
+	strncpy_s(to_read, length + 1, block->cBlock + offset_b, length);
+	return flag;
 }
 
 //把to_write[]数据的length长度的数据，写入从block开始的第index个字节上，注意把后面的数据后移，防止覆盖，如果index<0那么表示将数据插入最后
@@ -473,8 +489,8 @@ bool readData(string fileName, string db_name, int index, char to_read[], int& l
 }*/
 bool writeToIndex(string fileName, int index, char *to_write, int length, string db_name, int filetype)
 {
-	cout << to_write<<endl;
 	int blocknum = index / BLOCK_SIZE;
+	int offset = index % BLOCK_SIZE;
 	BlockInfo block = findBlock();
 
 	if (!block) //写入失败
@@ -484,35 +500,43 @@ bool writeToIndex(string fileName, int index, char *to_write, int length, string
 	}
 
 	FileInfo tmpfile = new struct fileInfo; //开个临时文件
-	tmpfile->fileName=fileName;
-	tmpfile->type=0;
+	tmpfile->fileName = fileName;
+	tmpfile->type = 0;
 
 	block->file = tmpfile;
-	block->dirtyBit = 1;
+
 	read_block_from_disk(tmpfile, db_name, blocknum, block);
 
-	
-	if (length > BLOCK_SIZE - block->charNum)		//对应块写不下，找后面的某个块继续写进去
+	if (length > BLOCK_SIZE - block->charNum)
 	{
-		int offset_w = 0; //字符串中的偏移量
-
-		while (1)
-		{
-
-			blocknum++; //看下一块
-			read_block_from_disk(tmpfile, db_name, blocknum, block);
-
-			if(length <= BLOCK_SIZE - block->charNum)
-			{
-				add_to_block(block, to_write);
-				block->dirtyBit = 1;
-				break;
-			}
-
-		}
+		read_block_from_disk(tmpfile, db_name, blocknum+1, block);
+		offset=0;
 	}
-	else
-		add_to_block(block, to_write);
-	write_block_to_disk(db_name,block);
+
+	// if (length > BLOCK_SIZE - block->charNum) //对应块写不下，找后面的某个块继续写进去
+	// {
+	// 	int offset_w = 0; //字符串中的偏移量
+
+	// 	while (1)
+	// 	{
+
+	// 		blocknum++; //看下一块
+	// 		read_block_from_disk(tmpfile, db_name, blocknum, block);
+
+	// 		if (length <= BLOCK_SIZE - block->charNum)
+	// 		{
+	// 			memcpy_s((block->cBlock)+offset,BLOCK_SIZE,to_write,length);
+	// 			break;
+	// 		}
+	// 	}
+	// }
+	//else
+	memcpy_s((block->cBlock) + offset, BLOCK_SIZE, to_write, length);
+
+	block->dirtyBit=1;
+	write_block_to_disk(db_name, block);
+
+	delete block;
+	delete tmpfile;
 	return true;
 }
