@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
 	//建立目录
-	string folderPath = ".\\minisql";
+	string folderPath = "..\\minisql";
 	string command;
 	command = "mkdir " + folderPath;
 	system(command.c_str());
