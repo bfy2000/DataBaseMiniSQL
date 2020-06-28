@@ -175,7 +175,7 @@ class Element {
     } else if (type == FLOAT) {  // float长度是4字节
       memcpy(&m_float, c, length);
     } else {                       //最长能够存储length个'a'
-      m_char = string(c, length);  //但是存储的空间需要+1
+      m_char = string(c);  //但是存储的空间需要+1
     }
   }
   string toString(){
