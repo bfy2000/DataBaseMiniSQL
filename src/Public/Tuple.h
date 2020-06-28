@@ -30,6 +30,8 @@ class Tuple {
   //拷贝函数
   Tuple(const Tuple& copytuple) {
     data = copytuple.data;
+    isDeleted_=copytuple.isDeleted_;
+	  index= copytuple.index;
     //	attr = copytuple.attr;
   }
 
