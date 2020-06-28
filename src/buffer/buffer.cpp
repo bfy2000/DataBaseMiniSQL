@@ -238,11 +238,11 @@ void write_block_to_disk(string db_name, BlockInfo block)
 //从文件中读取某个块
 BlockInfo get_block_info(string db_name, string table_name, int file_type, int BlockNum)
 {
-	cout << db_name << endl;
+	//cout << db_name << endl;
 	FileInfo fileptr = get_file_info(table_name, file_type);
 	if (!fileptr)
 	{
-		cout << table_name << endl;
+		//cout << table_name << endl;
 		cout << "get_block_info::No such file!" << endl;
 		return nullptr; //没找到对应文件
 	}

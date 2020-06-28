@@ -56,7 +56,7 @@ int RecordManager::insertValue(Table* table, Tuple tuple, int hasIndex, IndexMan
   }
 
   if (isConflictTheUnique(table, &tuple, hasIndex, index_manager) == true) {
-    cerr << "the primary key conflict" << endl;
+    cerr << "unique conflict" << endl;
     return UNIQUE_CONFLICT;//Table* table, Tuple* tuple, int hasIndex, IndexManager& index_manager
   }
 
@@ -265,6 +265,7 @@ vector<int> RecordManager::selectWithIndex(Table* table, SelectCondition& condit
   if(condition.opt == EQUAL){
     index_manager.find_element(DB_NAME, table->tableName, table->attributeVector[condition.attributeIndex].attributeName,
         table->attributeVector[condition.attributeIndex].type, condition.value.toString(), block_id);
+        if (block_id[0] == -1)block_id.clear();
   } else if(condition.opt == NOT_EQUAL){
     int flag = -1;
     if(index_manager.find_element(DB_NAME, table->tableName, table->attributeVector[condition.attributeIndex].attributeName,
@@ -455,13 +456,12 @@ int RecordManager::deleteTuple(Table* table, IndexManager& index_manager, vector
       cerr << "write to buffer error" << endl;
       return -1;
     }
-    // table.rowNum -= 1;//但是不修改数据行数标记
-    // for(int j=0; j<attrWithIndex_attrIndex.size(); j++){//删除这条数据的所有索引
-    //   indexManager.delete_index(DB_NAME, tableName,
-    //       catalogManager.get_attribute_name(tableName, attrWithIndex_attrIndex[j]),
-    //       tuple.getData()[attrWithIndex_attrIndex[j]].toString(),
-    //       catalogManager.get_type_for_match_IndexManager(tableName, attrWithIndex_attrIndex[j]));
-    // }
+    for(int j=0; j<attrWithIndex_attrIndex.size(); j++){//删除这条数据的所有索引
+		   index_manager.delete_index(DB_NAME, table->tableName,
+			   table->attributeVector[attrWithIndex_attrIndex[j]].attributeName, table->attributeVector[attrWithIndex_attrIndex[j]].type,
+		       tuple.getData()[attrWithIndex_attrIndex[j]].toString()
+		       );
+		 }
   }
   return deleteNum;
 }

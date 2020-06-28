@@ -260,7 +260,10 @@ Result WhereExpr_To_SelectCondition(CatalogManager& catalog_manager,
 Result SelectQuery::Query(CatalogManager& catalog_manager, RecordManager& record_manager, IndexManager& index_manager) {
 	//select_all = false;
 	Prompt("SELECT ...");
-
+if (!catalog_manager.is_table_exist(select_table_name)) {
+		Prompt("No such table");
+		return ERROR;
+	}
 	vector<SelectCondition> selectConditions;
 	Result r = WhereExpr_To_SelectCondition(catalog_manager, select_table_name, where_expr_list, selectConditions);
 	if(r < 0){
