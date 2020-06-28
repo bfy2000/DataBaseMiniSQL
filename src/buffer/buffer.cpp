@@ -102,12 +102,10 @@ FileInfo get_file_info(string fileName, int fileType)
 		fileptr = fileptr->next;
 	}
 
-	add_file_to_list(fileName,fileType,20,20);
-
+	return add_file_to_list(fileName,fileType,20,20);
 
 	//文件不存在
 	//cout << "get_file_info::No such file" << endl;
-	return nullptr;
 }
 
 //在buffer中查找一个块
