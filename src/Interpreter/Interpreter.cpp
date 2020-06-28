@@ -168,6 +168,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		case State::DELETE_TABLE_PARSED: {
 			if (next_word == ";") {
 				api.delete_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 			}
 			else if (next_word == "WHERE" || next_word == "where") {
@@ -242,6 +243,7 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 			else if (next_word == ";") {
 				api.delete_query.Query(api.catalog_manager, api.record_manager, api.index_manager);
+				api.delete_query.Clear();
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
