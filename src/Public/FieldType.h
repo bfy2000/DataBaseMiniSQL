@@ -52,8 +52,10 @@ public:
 	}
 	FieldType operator=(const FieldType& x)
 	{
-		FieldType y(x.type, x.length);
-		return y;
+		this->type = x.type;
+		this->length = x.length;
+		//FieldType y(x.type, x.length);
+		return *this;
 	}
 };
 #endif // !_FIELDTYPE_H_

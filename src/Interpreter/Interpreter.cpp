@@ -786,8 +786,11 @@ void Interpreter::ReadInput(istringstream &input) {
 			}
 		} break;
 		case State::SELECT_FROM: {
-			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$")))
+			if (regex_match(next_word, regex("^[a-zA-Z0-9_]*$"))){
+				api.select_query.SetSelectTable(next_word);
 				state_code = State::SELECT_TABLE_PARSED;
+			}
+				
 			else if (next_word != "") {
 				PromptErr("[Syntax Error] invalid table name: " + next_word);
 				api.select_query.Clear();
