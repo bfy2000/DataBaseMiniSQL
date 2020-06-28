@@ -404,11 +404,14 @@ void add_to_block(BlockInfo block, char to_write[], int length)
 
 bool readData(string fileName, string db_name, int index, char to_read[], int &length, int filetype)
 {
-	int blocknum = index / BLOCK_SIZE;
-	int offset_b = index % BLOCK_SIZE;
+	int recnum=index/length;//记录数
+	int recs_inblock=BLOCK_SIZE/(length);//每块能容纳的记录数
+	int blocknum = recnum/recs_inblock;//第多少个块
+	int offset_b = index % (length*recs_inblock);//在那个块的偏移量
 
 	FileInfo tmpfile = new struct fileInfo;
 	tmpfile->fileName=fileName;
+	tmpfile->type=0;
 	BlockInfo block=findBlock();
 	block->blockNum=blocknum;
 	block->file=tmpfile;
@@ -487,8 +490,11 @@ bool readData(string fileName, string db_name, int index, char to_read[], int &l
 }*/
 bool writeToIndex(string fileName, int index, char *to_write, int length, string db_name, int filetype)
 {
-	int blocknum = index / BLOCK_SIZE;
-	int offset = index % BLOCK_SIZE;
+	int recnum = index / length;					//记录数
+	int recs_inblock = BLOCK_SIZE / (length);		//每块能容纳的记录数
+	int blocknum = recnum / recs_inblock;			//第多少个块
+	int offset = index % (length * recs_inblock); //在那个块的偏移量
+	
 	BlockInfo block = findBlock();
 
 	if (!block) //写入失败
