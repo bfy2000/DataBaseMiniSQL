@@ -740,6 +740,7 @@ void Interpreter::ReadInput(istringstream &input) {
 		case State::CREATE_TABLE_RIGHT_BRACKET: {
 			if (next_word == ";") {
 				api.create_table.Query(api.catalog_manager, api.index_manager);
+				api.create_table.Clear();
 				state_code = State::IDLE;
 			}
 			else if (next_word != "") {
