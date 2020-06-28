@@ -152,7 +152,7 @@ bool RecordManager::isConflictTheUnique(Table* table, Tuple* tuple, int hasIndex
       vector<int> block_id;
       block_id.clear();
       if(index_manager.find_element(DB_NAME, table->tableName, table->attributeVector[i].attributeName, 
-            table->attributeVector[i].type, tuple->getData()[i].toString(), block_id)){
+            table->attributeVector[i].type, tuple->getData()[i].toString(), block_id)==SUCCESS){
         //表示在unique的index上找到了
         return true;//表示发生了冲突
       }
@@ -268,7 +268,7 @@ vector<int> RecordManager::selectWithIndex(Table* table, SelectCondition& condit
   } else if(condition.opt == NOT_EQUAL){
     int flag = -1;
     if(index_manager.find_element(DB_NAME, table->tableName, table->attributeVector[condition.attributeIndex].attributeName,
-        table->attributeVector[condition.attributeIndex].type, condition.value.toString(), block_id)){
+        table->attributeVector[condition.attributeIndex].type, condition.value.toString(), block_id)==SUCCESS){
       flag = block_id[0];
     }
     block_id.clear();
