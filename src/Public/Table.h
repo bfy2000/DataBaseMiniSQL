@@ -30,7 +30,7 @@ public:
 
 		this->attributeVector = attributeVector;
 		this->attributeNum = attributeVector.size();
-
+		this->indexNum = 0;
 		this->rowNum = 0;
 
 		this->rowLength = sizeof(char);//第0个字节用来记录数据是否删除
