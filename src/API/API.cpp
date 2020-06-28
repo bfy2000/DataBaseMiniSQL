@@ -166,6 +166,7 @@ void CreateTable::InsertAttr(string &attr_name) {
 	int n = attr_list.size();
 	attr_list.push_back(Attribute());
 	attr_list[n].attributeName = attr_name;
+	attr_list[n].isUnique = false;
 }
 
 void CreateTable::InsertType(NumType given_type) {
