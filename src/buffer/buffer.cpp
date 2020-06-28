@@ -430,7 +430,7 @@ bool readData(string fileName, string db_name, int index, char to_read[], int &l
 		flag = false;
 	}
 
-	strncpy_s(to_read, length + 1, block->cBlock + offset_b, length);
+	memcpy_s(to_read, length + 1, block->cBlock + offset_b, length);
 	return flag;
 }
 

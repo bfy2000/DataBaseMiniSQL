@@ -136,6 +136,13 @@ class Element {
     m_int = i;
     length = l;
   }
+  Element(const Element& t) {
+	  type = t.type;
+	  m_int=t.m_int;
+	  m_float=t.m_float;
+	  m_char=t.m_char;
+	  length=t.length;
+  }
   Element(){
     
   }

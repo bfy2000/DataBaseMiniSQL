@@ -184,8 +184,8 @@ Tuple RecordManager::getTupleByRowNumber(Table* table, int RowNumber) {
   readData(table->tableName, DB_NAME, RowNumber * table->rowLength, tmpData,
            tmpLength, 0);
   Tuple tmpTuple = charToTuple(table, tmpData);
-  free(tmpData);
-  return tuple;
+  //free(tmpData);
+  return tmpTuple;
 }
 
 //仅允许单个条件，或者多个条件的and类型的查询操作（or是不行的，需要预处理成and）
